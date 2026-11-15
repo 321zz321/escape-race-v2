@@ -57,9 +57,9 @@ module.exports = [
       if (!f.revealed[row][col] && neighbors(row, col).every(tile => !f.revealed[tile.row][tile.col])) unreachable = { row, col };
     }
     assert.ok(unreachable);
-    const before = JSON.stringify(game.players[0]);
+    const before = game.state.players[0];
     assert.equal(game.act(0, { op: 'step', ...unreachable }).ok, false);
-    assert.equal(JSON.stringify(game.players[0]), before);
+    assert.deepEqual({ ...game.state.players[0], lastActivity: before.lastActivity }, before);
     assert.equal(f.revealed[8][3], false);
     assert.equal(game.act(0, { op: 'go', room: 'vault' }).ok, false);
     assert.equal(game.players[0].room, 'minefield');

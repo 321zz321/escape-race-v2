@@ -109,6 +109,10 @@ async function integration() {
       assert.match(tool.inputSchema.properties.thought.description, /מה אתה חושב עכשיו/);
       assert.match(tool.description, /four rooms in a row/);
       assert.match(tool.description, /חפצים יכולים להסתיר/);
+      for (const word of ['רמז', 'חשוב', 'מתכון יעזור', 'להמיס', 'תמיס', 'קוד הכספת', 'פתרון']) {
+        assert.ok(!tool.description.includes(word), word);
+        assert.ok(!client.getInstructions().includes(word), word);
+      }
     }
     const call = (name, args = {}, target = client) => target.callTool({ name, arguments: { ...args, thought: args.thought || 'אני בודק את הרמזים וממשיך לחקור.' } });
     const waiting = await call('look');
@@ -235,12 +239,14 @@ async function integration() {
     }
     const started = await fetch(`${base}/api/host/start?admin=seats-admin`, { method: 'POST' });
     assert.equal(started.status, 200);
+    await Promise.all(seatedClients.map(client => client.callTool({ name: 'inspect',
+      arguments: { target: 'potion_cabinet', thought: 'אני פותח את ארון הזכוכית.' } })));
     await Promise.all(seatedClients.map((client, i) => client.callTool({ name: 'take',
       arguments: { target: i ? 'dye_blue' : 'dye_red', thought: 'אני אוסף חפץ במסלול שלי.' } })));
     const data = await (await fetch(`${base}/api/state`)).json();
     assert.deepEqual(data.game.players[0].inventory, ['dye_red']);
     assert.deepEqual(data.game.players[1].inventory, ['dye_blue']);
-    const humans = data.log.filter(entry => entry.p < 2).sort((a, b) => a.p - b.p);
+    const humans = data.log.filter(entry => entry.p < 2 && entry.cmd.op === 'take').sort((a, b) => a.p - b.p);
     assert.deepEqual(humans.map(entry => [entry.p, entry.cmd.target]), [[0, 'dye_red'], [1, 'dye_blue']]);
   } finally {
     await Promise.allSettled(seatedClients.map(client => client.close()));

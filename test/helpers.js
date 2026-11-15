@@ -47,6 +47,9 @@ function run(game, i, cmd, log) {
 
 function brew(game, i, recipe, log) {
   const act = cmd => run(game, i, cmd, log);
+  for (const target of ['potion_cabinet', 'tall_cupboard', 'cauldron']) {
+    if (!game.players[i].read.includes(target)) act({ op: 'inspect', target });
+  }
   act({ op: 'use', item: 'drain_valve' });
   if (!game.players[i].inventory.includes('flask')) act({ op: 'take', target: 'flask_rack' });
   for (const [color, amount] of Object.entries(recipe)) {
@@ -77,6 +80,7 @@ function toMinefield(game, i = 0, log) {
   toStorage(game, i, log);
   const act = cmd => run(game, i, cmd, log);
   act({ op: 'inspect', target: 'gate_sign' });
+  act({ op: 'inspect', target: 'tarp' });
   for (const target of Object.keys(game.solution().crateWeights)) act({ op: 'inspect', target });
   for (const item of game.solution().crateTriple) {
     act({ op: 'take', target: item });
@@ -99,6 +103,7 @@ function toVault(game, i = 0, log) {
   }
   assert.equal(game.progress(i), 0.6);
   act({ op: 'go', room: 'vault' });
+  act({ op: 'inspect', target: 'vault_door' });
 }
 
 function solve(game, i = 0, log, sealFirst = false) {

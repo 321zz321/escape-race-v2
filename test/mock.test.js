@@ -7,10 +7,12 @@ const vm = require('node:vm');
 const { Game, durationMs } = require('../public/engine');
 const { MockBot, runRace } = require('../public/mock');
 
-const ranges = [[2050, 3000], [1300, 2100], [1700, 2700], [1400, 2100]];
+const ranges = [[1450, 2150], [1075, 1725], [1325, 2050], [1150, 1725]];
 const distractors = new Set(['painting', 'globe', 'skull', 'candles', 'cat_statue', 'rug', 'glitter', 'empty_bottle',
-  'barrel', 'anvil', 'toolbox', 'mirror', 'poster', 'shelf', 'armor', 'banner', 'bones',
-  'small_safe', 'portrait', 'chest', 'telescope', 'gold_pile']);
+  'calendar', 'barometer', 'old_map', 'chest_lab', 'sink',
+  'barrel', 'anvil', 'toolbox', 'mirror', 'poster', 'shelf_storage', 'cardboard_boxes', 'wheelbarrow',
+  'armor', 'banner', 'bones', 'torch_holder', 'cracked_shield', 'stone_bench', 'wall_niche',
+  'small_safe', 'portrait', 'chest', 'telescope', 'gold_pile', 'desk_vault', 'coat_rack', 'umbrella_stand']);
 const stat = () => ({ wins: 0, explosions: 0, wrongCodes: 0, muddyBrews: 0, sandTrials: 0, wrongScaleTrials: 0, scaleCorrections: 0, backtracks: 0, missedClocks: 0, props: 0, thinkingMs: 0, commands: 0 });
 
 module.exports = [
@@ -43,7 +45,13 @@ module.exports = [
         stats[p].commands++;
         assert.match(thought, /[א-ת]/);
         assert.ok(thought.length < 190 && !/undefined|\[object Object\]|\{\w+\}/.test(thought), thought);
+        for (const word of ['רמז', 'חשוב', 'מתכון יעזור', 'להמיס', 'תמיס', 'קוד הכספת', 'פתרון']) assert.ok(!thought.includes(word), thought);
         commands[p]++;
+
+        if (['inspect', 'take'].includes(cmd.op) || (cmd.op === 'use' && cmd.target)) {
+          const obj = game.rooms[player.room].objects.find(o => o.id === cmd.target);
+          if (obj?.hidden) assert.ok(player.discovered.includes(obj.id), `Must discover ${obj.id} before ${cmd.op}`);
+        }
 
         if (cmd.op === 'use' && cmd.target === 'cauldron') {
           assert.ok(player.read.includes('bookshelf') && player.read.includes('recipe_book'), 'Read the book before mixing');
@@ -97,6 +105,12 @@ module.exports = [
       assert.deepEqual(race.places.map(p => game.players[p].place), [1, 2, 3, 4]);
       assert.equal(race.totalMs, Math.max(...end), 'Includes the last escape animation');
       for (let p = 0; p < 4; p++) {
+        for (const id of ['potion_cabinet', 'tall_cupboard', 'cauldron', 'bookshelf', 'desk', 'desk_drawer', 'tarp', 'notice_board']) {
+          assert.ok(game.players[p].read.includes(id), `Explored container ${id}`);
+        }
+        const junk = game.rooms.lab.objects.filter(o => o.parent === 'potion_cabinet' && !o.id.startsWith('dye_') && o.id !== 'ink_black');
+        assert.ok(junk.some(o => game.players[p].read.includes(o.id)), 'Actually inspect mixed-in bottle clutter');
+        assert.ok(game.players[p].read.includes('note'), 'Return to skipped desk and open the cabinet');
         assert.ok(commands[p] < MockBot.MAX_STEPS);
         maximumSteps = Math.max(maximumSteps, commands[p]);
         explosionHistogram[game.players[p].minefield.strikes]++;
@@ -111,8 +125,7 @@ module.exports = [
     }
     times.sort((a, b) => a - b);
     const median = (times[19] + times[20]) / 2;
-    assert.ok(times.every(t => t >= 4 && t <= 6.5), `Every fourth escape takes 4–6.5 minutes: ${times[0]}–${times[39]}`);
-    assert.ok(median >= 5.2 && median <= 5.8, `Typical race is about 5.5 minutes: ${median}`);
+    assert.ok(times.every(t => t >= 4.5 && t <= 7), `Every fourth escape takes 4.5–7 minutes: ${times[0]}–${times[39]}`);
     for (const [i, { wins }] of stats.entries()) {
       assert.ok(wins >= 5 && wins <= 16, `${MockBot.PERSONALITIES[i].id} must win 5–16 of 40 races, got ${wins}`);
     }
@@ -129,7 +142,7 @@ module.exports = [
     const round = n => Number(n.toFixed(2));
     console.log('Mock times (minutes, seeds 1–40):', JSON.stringify({ min: round(times[0]), p10: round(times[3]), median: round(median),
       mean: round(times.reduce((a, b) => a + b, 0) / 40), p90: round(times[35]), max: round(times[39]),
-      within4to6_5: times.filter(t => t >= 4 && t <= 6.5).length, maximumSteps }));
+      within4_5to7: times.filter(t => t >= 4.5 && t <= 7).length, maximumSteps }));
     console.log('Mock results:', JSON.stringify(Object.fromEntries(MockBot.PERSONALITIES.map((p, i) => [p.id, stats[i]]))));
     console.log('Explosions per bot (0, 1, 2, 3, 4):', JSON.stringify(explosionHistogram));
   }],

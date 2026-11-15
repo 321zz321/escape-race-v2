@@ -13,31 +13,38 @@
     { id: 'chaotic', name: 'כאוס', color: '#ff6c83' }
   ].map(Object.freeze));
   const PROFILES = {
-    careful: { think: [2050, 3000], explore: [5, 4, 2, 3], skipKey: 0.05, skipClock: 0.08, brew: 0.06, scale: 0.08, decoy: 0.10, risk: 0.08 },
-    fast: { think: [1300, 2100], explore: [1, 1, 1, 1], skipKey: 0.80, skipClock: 0.80, brew: 0.80, scale: 0.95, decoy: 0.75, risk: 0.90 },
-    chatty: { think: [1700, 2700], explore: [3, 3, 2, 3], skipKey: 0.25, skipClock: 0.30, brew: 0.25, scale: 0.30, decoy: 0.45, risk: 0.30 },
-    chaotic: { think: [1400, 2100], explore: [3, 2, 2, 2], skipKey: 0.65, skipClock: 0.60, brew: 0.75, scale: 0.80, decoy: 0.85, risk: 0.90 }
+    careful: { think: [1450, 2150], explore: [5, 4, 2, 3], skipKey: 0.05, skipClock: 0.08, brew: 0.06, scale: 0.08, decoy: 0.10, risk: 0.08 },
+    fast: { think: [1075, 1725], explore: [1, 1, 1, 1], skipKey: 0.80, skipClock: 0.80, brew: 0.80, scale: 0.95, decoy: 0.75, risk: 0.90 },
+    chatty: { think: [1325, 2050], explore: [3, 3, 2, 3], skipKey: 0.25, skipClock: 0.30, brew: 0.25, scale: 0.30, decoy: 0.45, risk: 0.30 },
+    chaotic: { think: [1150, 1725], explore: [3, 2, 2, 2], skipKey: 0.65, skipClock: 0.60, brew: 0.75, scale: 0.80, decoy: 0.85, risk: 0.90 }
   };
   const DISTRACTORS = {
-    lab: ['painting', 'globe', 'skull', 'candles', 'cat_statue', 'rug', 'glitter', 'empty_bottle'],
-    storage: ['barrel', 'anvil', 'toolbox', 'mirror', 'poster', 'shelf'],
-    minefield: ['armor', 'banner', 'bones'],
-    vault: ['small_safe', 'portrait', 'chest', 'telescope', 'gold_pile']
+    lab: ['painting', 'calendar', 'barometer', 'old_map', 'chest_lab', 'rug', 'sink'],
+    storage: ['barrel', 'anvil', 'toolbox', 'mirror', 'poster', 'shelf_storage', 'cardboard_boxes', 'wheelbarrow'],
+    minefield: ['armor', 'banner', 'bones', 'torch_holder', 'cracked_shield', 'stone_bench', 'wall_niche'],
+    vault: ['small_safe', 'portrait', 'chest', 'telescope', 'gold_pile', 'desk_vault', 'coat_rack', 'umbrella_stand']
   };
+  const JUNK = new Set(['olive_oil', 'perfume', 'vinegar', 'glitter', 'apron', 'gloves', 'broom', 'stool',
+    'cookbook', 'star_atlas', 'poetry_book', 'dictionary', 'diary_old', 'empty_folder', 'skull', 'cat_statue',
+    'pencils', 'eraser', 'ink_pen', 'old_receipt', 'globe', 'candles', 'old_clothes', 'broken_spectacles',
+    'trapdoor', 'herb_basket', 'paint_cans', 'rope', 'lantern', 'magnifier', 'hammer', 'nails', 'screwdriver',
+    'empty_jars', 'newspapers', 'helmet', 'armor_lining', 'tooth', 'spent_torch', 'leather_straps', 'satchel',
+    'cloth_scraps', 'buttons', 'pottery_shards', 'clay_bowl', 'smooth_stones', 'old_notice', 'wanted_poster',
+    'menu', 'bank_hours', 'ledger', 'stamp', 'papers_pile', 'gold_coin', 'velvet_pouch', 'dusty_coat', 'bent_umbrella']);
   const COLORS = { red: 'אדום', yellow: 'צהוב', blue: 'כחול' };
   // Complete sentences avoid trying to inflect engine display labels in Hebrew.
   // Object-specific lines rotate with a personality line for the object's kind.
   const INSPECTIONS = {
     ice_door: ['אבדוק כמה קרח מכסה את הדלת.', 'אולי אפשר לפתוח את דלת הקרח בלי לשבור אותה?'],
     bookshelf: ['אעבור על הספרים שבכוננית.', 'מעניין מה בחרו לשים על המדף האמצעי.'],
-    recipe_book: ['אקרא את ספר המתכונים ואבדוק מה צריך לערבב.', 'אפתח את ספר המתכונים. אולי יש בו משהו שימיס קרח.'],
+    recipe_book: ['אפתח את הספר הכתוב ביד.', 'הכתב בספר הזה צפוף. אקרא כמה שורות.'],
     star_atlas: ['אדפדף באטלס הכוכבים, אולי אחת המפות תעזור.', 'אולי סימנו משהו בין קבוצות הכוכבים?'],
-    poetry_book: ['אקרא כמה שורות מספר השירים.', 'לפעמים רמז מסתתר בשיר. נראה מה כתוב כאן.'],
+    poetry_book: ['אקרא כמה שורות מספר השירים.', 'נראה מה כתוב בשיר שבאמצע הספר.'],
     desk: ['אבדוק אם השאירו משהו על שולחן הכתיבה.', 'אולי יש מגירה בשולחן הזה?'],
     desk_drawer: ['אפתח את מגירת השולחן ואראה מה יש בתוכה.', 'המגירה הזאת עוד סגורה. בואו נציץ פנימה.'],
     wall_clock: ['אבדוק מה השעה בשעון שעל הקיר.', 'מעניין אם מחוגי השעון בכלל זזים.'],
     painting: ['אחפש בציור פרט שלא שייך לנוף.', 'אולי ציירו משהו קטן בין העצים?'],
-    globe: ['אבדוק אם סימנו מקום כלשהו על הגלובוס.', 'אולי אחד משמות הארצות הוא רמז?'],
+    globe: ['אבדוק אם סימנו מקום כלשהו על הגלובוס.', 'מעניין אילו ארצות מצוירות כאן.'],
     skull: ['אסתכל מקרוב על הגולגולת. אולי חרוט עליה משהו.', 'למה שמו כאן גולגולת? אבדוק אם יש לה תפקיד.'],
     candles: ['אספור את הנרות ואבדוק איך הם מסודרים.', 'אולי נשאר סימן בשעווה של הנרות?'],
     cat_statue: ['אבדוק את הבסיס של פסל החתול.', 'החתול הזה שומר על משהו? בואו נסתכל.'],
@@ -49,25 +56,25 @@
     sand_sack: ['אבדוק כמה שוקל שק החול.', 'יש תווית על השק. נראה מה כתוב בה.'],
     barrel: ['אבדוק אם החבית מכילה משהו.', 'אולי החביאו משהו מתחת למכסה החבית?'],
     anvil: ['אחפש סימון על הסדן.', 'הסדן הזה בטח כבד. מעניין אם הוא שימושי כאן.'],
-    toolbox: ['אפתח את ארגז הכלים.', 'אולי יש בארגז כלי שיעזור לנו לקרוא את הרמזים?'],
+    toolbox: ['אפתח את ארגז הכלים.', 'נרים את המכסה ונראה אילו כלים נשארו פה.'],
     mirror: ['אבדוק אם יש כתובת על המראה.', 'אולי רואים במראה משהו שפספסתי בחדר?'],
     poster: ['אסתכל מקרוב על הכרזה.', 'אולי האיור בכרזה קשור לארגזים?'],
     shelf: ['אעבור על מה שמונח במדף העץ.', 'אולי בין כלי החרס נשאר משהו שימושי?'],
     warning_sign: ['אקרא את ההוראות לפני הצעד הראשון.', 'מה בדיוק אומרים המספרים על הלוח? השלט אמור להסביר.'],
     armor: ['אבדוק אם יש משהו בתוך השריון.', 'מעניין אם השריון הזה יכול לעזור, או שהוא רק קישוט.'],
     banner: ['אסתכל על הרקמה שבשולי הדגל.', 'אולי הדוגמה שעל הדגל היא סימן?'],
-    bones: ['אבדוק איך העצמות מסודרות.', 'העצמות האלה לא מעודדות אותי. אולי בכל זאת יש כאן רמז.'],
+    bones: ['אבדוק איך העצמות מסודרות.', 'העצמות האלה לא מעודדות אותי. אסתכל מקרוב.'],
     vault_door: ['אבדוק מה מחזיק את דלת הכספת סגורה.', 'הגענו לכספת. נראה מה צריך כדי לפתוח אותה.'],
     grandfather_clock: ['אבדוק איזו שעה מראה השעון העומד.', 'שעון ממש ליד הכספת? אולי יש קשר.'],
     cabinet: ['אבדוק אם הארונית נעולה.', 'אולי יש בארונית משהו שיעזור לפתוח את הכספת?'],
     note: ['אפתח את הפתק המקופל ואקרא אותו.', 'מישהו השאיר לנו פתק. נראה מה הוא רצה לומר.'],
-    notice_board: ['אעבור על הניירות שבלוח המודעות.', 'אולי נעצו בלוח הוראות חשובות?'],
+    notice_board: ['אעבור על הניירות שבלוח המודעות.', 'יש הרבה ניירות על הלוח. אקרא אותם מקרוב.'],
     torn_page: ['אקרא את הדף התלוש, כולל השורות הקטנות.', 'מעניין מאיזה ספר הדף הזה נתלש.'],
     small_safe: ['אציץ לתוך הכספת הקטנה.', 'אולי השאירו משהו בכספת הצדדית?'],
     portrait: ['אחפש פרט מעניין בדיוקן.', 'מעניין מי האיש בציור ומה הוא עושה כאן.'],
     chest: ['אבדוק מה יש בתיבת העץ.', 'אולי התיבה הזאת מחזיקה משהו שימושי?'],
     telescope: ['אבדוק לאן הטלסקופ מכוון.', 'אפשר לראות מכאן משהו דרך הטלסקופ?'],
-    gold_pile: ['אבדוק אם יש סימנים על מטבעות הזהב.', 'כל הזהב הזה מפתה, אבל אולי מסתתר בו רמז.']
+    gold_pile: ['אבדוק אם יש סימנים על מטבעות הזהב.', 'כל הזהב הזה מפתה. נראה מה יש בערמה.']
   };
   // Columns follow PERSONALITIES. These describe an action appropriate to a kind,
   // without attaching the same sentence to unrelated names or guessing gender.
@@ -112,7 +119,7 @@
   // Each bank rotates without immediate repetition. Values are spoken BEFORE the action.
   const SPEECH = {
     careful: {
-      look: ['קודם אסתכל סביב ואסדר את הרמזים.', 'חדר חדש, נבדוק מה יש כאן.'],
+      look: ['קודם אסתכל סביב ואבחר מאיפה להתחיל.', 'חדר חדש, נבדוק מה יש כאן.'],
       pour: ['{color}, מנה {n} מתוך {total}, לפי המתכון.', 'אמזוג בזהירות: מנה {n} מתוך {total} של {color}.'],
       fill: ['הכמויות בפנים, אמלא את הבקבוקון.', 'עכשיו נבדוק איזה נוזל התקבל.'],
       go: ['אעבור אל {name} ואמשיך משם.', 'הדרך אל {name} פתוחה, אפשר להתקדם.'],
@@ -120,10 +127,10 @@
       safe: ['{reason}, לכן {pos} בטוחה.', '{pos} בטוחה לפי המספרים, אצעד לשם.'],
       boom: ['אוי! מוקש, אצטרך לבדוק שוב את המספרים.', 'ההערכה שלי הייתה שגויה, אסמן את המוקש הזה.'],
       muddy: ['יצא חום, כנראה טעיתי בכמות, ארוקן ואמדוד מחדש.', 'זו לא התוצאה שבמתכון, צריך להתחיל מחדש.'],
-      wrongCode: ['הקוד נדחה, צריך לבדוק לאיזה שעון התכוונו.', 'השעה הזאת לא פתחה את המנעול, חסר לי רמז.']
+      wrongCode: ['הקוד נדחה, צריך לבדוק לאיזה שעון התכוונו.', 'השעה הזאת לא פתחה את המנעול, אבדוק עוד.']
     },
     fast: {
-      look: ['מה יש פה, מהר.', 'איפה הרמז הבא.'],
+      look: ['מה יש פה, מהר.', 'מה עוד לא בדקתי כאן.'],
       pour: ['{color}, מנה {n} מתוך {total}.', 'עוד {color}, {n} מתוך {total}, קדימה.'],
       fill: ['נמלא ונמשיך.', 'יאללה, לבקבוקון.'],
       go: ['קדימה אל {name}.', 'זזים אל {name}.'],
@@ -142,7 +149,7 @@
       safe: ['{reason}, אז אפשר לנשום ולצעוד אל {pos}.', '{pos} בטוחה לפי המספרים, סוף סוף חדשות טובות.'],
       boom: ['אוי! מוקש, הלב שלי עוד במשבצת הקודמת.', 'טוב, זה היה שיעור רועש במיוחד בחשבון.'],
       muddy: ['יצא בוץ, אפילו אני לא הייתי מגיש את זה לאורחים.', 'המתכון ביקש שיקוי ואני הכנתי שלולית, ננסה שוב.'],
-      wrongCode: ['הכספת לא התרשמה, כנראה בחרתי בשעון הלא נכון.', 'טוב, בתור סיסמה זה לא הצליח, נחפש רמז אחר.']
+      wrongCode: ['הכספת לא התרשמה, כנראה בחרתי בשעון הלא נכון.', 'טוב, בתור סיסמה זה לא הצליח, נמשיך לבדוק.']
     },
     chaotic: {
       look: ['יאללה, מה אפשר לנסות פה!', 'חדר חדש, בואו נזיז דברים!'],
@@ -245,7 +252,8 @@
     _inspect(target, thought) {
       if (!thought) {
         const kind = this._object(target).kind;
-        const bank = [...(kind === 'crate' ? CRATE_INSPECTIONS : INSPECTIONS[target])];
+        const bank = [...(kind === 'crate' ? CRATE_INSPECTIONS : INSPECTIONS[target] || [
+          `אבדוק מקרוב את ${this._name(target)}.`, `ניגש אל ${this._name(target)} ונראה מה יש שם.`])];
         if (KIND_INSPECTIONS[kind]) bank.push(this._voice(...KIND_INSPECTIONS[kind]));
         thought = this._phrase(`inspect:${kind === 'crate' ? kind : target}`, bank, { n: target.split('_')[1] });
       }
@@ -266,8 +274,8 @@
       for (const id of this._shuffle(DISTRACTORS[room]).slice(0, n)) this._inspect(id);
     }
 
-    _key() {
-      this._inspect('desk');
+    _key(returning = false) {
+      this._inspect('desk', returning ? 'קודם דילגתי על השולחן. הפעם אבדוק גם את המגירה.' : undefined);
       this._inspect('desk_drawer');
       this._take('brass_key');
     }
@@ -333,6 +341,22 @@
         if (cmd.target === 'wall_clock' || cmd.target === 'grandfather_clock') {
           const time = text.match(/\d{1,2}:\d{2}/)[0];
           k[cmd.target === 'wall_clock' ? 'clock' : 'decoy'] = time;
+        }
+        // Browse a newly opened container before resuming the route. Children come
+        // only from reveal events, never from unseen room metadata. Some are nested.
+        const junk = result.ev.filter(ev => ev.t === 'reveal' && JUNK.has(ev.obj)).map(ev => ev.obj);
+        if (junk.length) {
+          const selected = this._shuffle(junk).slice(0, this.personality === 'careful' && this.rng() < 0.35 ? 2 : 1);
+          const rest = this.queue;
+          this.queue = [];
+          for (const id of selected) this._inspect(id);
+          this.queue.push(...rest);
+        } else if (JUNK.has(cmd.target) && !this.reaction) {
+          this.reaction = this._voice(
+            `${text.split('.')[0]}. ארשום מה ראיתי ואמשיך.`,
+            `${text.split('.')[0]}. ממשיכים.`,
+            `${text.split('.')[0]}. מישהו ממש אהב לאגור פה דברים.`,
+            `${text.split('.')[0]}. טוב, מה עוד יש פה?`);
         }
       }
       this.pending = null;
@@ -502,7 +526,7 @@
           this._look();
           this._inspect('ice_door');
           this._explore('lab');
-          this._inspect('bookshelf');
+          this._inspect('bookshelf', this.skipKey ? 'את השולחן אשאיר לאחר כך. קודם אעבור על הכוננית.' : undefined);
           this.stage = 'lab_clues';
           break;
         case 'lab_clues':
@@ -510,6 +534,10 @@
           this._inspect('recipe_book');
           if (!this.skipKey) this._key();
           if (!this.skipClock) this._inspect('wall_clock');
+          this.stage = 'lab_supplies';
+          break;
+        case 'lab_supplies':
+          for (const id of this._shuffle(['potion_cabinet', 'tall_cupboard', 'cauldron'])) this._inspect(id);
           this.stage = 'fire';
           break;
         case 'fire':
@@ -524,6 +552,7 @@
           this._look();
           this._inspect('gate_sign');
           this._explore('storage');
+          this._inspect('tarp');
           for (const id of this._shuffle(Array.from({ length: 6 }, (_, i) => `crate_${i + 1}`))) this._inspect(id);
           this.stage = 'weigh';
           break;
@@ -558,12 +587,13 @@
           break;
         case 'return_lab':
           if (this.knowledge.clock) this._code();
-          this._go('minefield', this._voice('הדף מתאר שיקוי נגד חלודה, אחזור למעבדה להכין אותו.', 'צריך חומצה, חוזרים למעבדה.', 'דווקא עכשיו מצאנו את המתכון, חוזרים לסיבוב נוסף במעבדה.', 'חומצה נגד חלודה! חוזרים לקדרה!'));
+          this._go('minefield', this._voice('בדף כתוב שיקוי חומצה. אחזור למעבדה לערבב אותו.', 'יש עוד תערובת לנסות, חוזרים למעבדה.', 'דווקא עכשיו מצאנו עוד מתכון, חוזרים לסיבוב נוסף במעבדה.', 'שיקוי חומצה! מסקרן! חוזרים לקדרה!'));
           this._go('storage', 'אחזור דרך המשבצות שכבר נחשפו.');
           this._go('lab');
           this.stage = 'lab_return';
           break;
         case 'lab_return':
+          if (this.skipKey) this._key(true);
           if (!this.knowledge.clock) this._inspect('wall_clock', this._voice('פספסתי קודם את השעון, הפעם ארשום את השעה.', 'דילגתי על השעון, בודק עכשיו.', 'הנה השעון שלא נתתי לו תשומת לב, בואו נכיר.', 'רגע! את השעון הזה עוד לא בדקתי!'));
           this.stage = 'acid';
           break;
@@ -577,8 +607,12 @@
           }
           break;
         case 'finish':
+          if (!this.knowledge.read.has('note')) {
+            this._add({ op: 'use', item: 'brass_key', target: 'cabinet' }, 'חזרתי עם המפתח מהמגירה. אנסה אותו בארונית.');
+            this._inspect('note');
+          }
           if (!this.player.locks.keypad) this._code();
-          this._add({ op: 'use', item: 'flask_acid', target: 'rust_seal' }, this._voice('אשתמש בשיקוי שממיס חלודה על החותם.', 'חומצה על החלודה, קדימה.', 'הבאנו לחותם את הטיפול שהדף המליץ עליו, נקווה שיעבוד.', 'שיקוי על החלודה! תיפתח כבר!'));
+          this._add({ op: 'use', item: 'flask_acid', target: 'rust_seal' }, this._voice('אנסה מעט מהשיקוי על החותם החלוד.', 'ננסה חומצה על החותם.', 'חזרנו עם בקבוקון חדש. נראה איך החותם יגיב אליו.', 'שיקוי על החותם! נראה מה קורה!'));
           break;
         default: throw new Error(`Unknown mock stage: ${this.stage}`);
       }

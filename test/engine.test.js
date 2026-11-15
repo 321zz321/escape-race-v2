@@ -30,7 +30,8 @@ module.exports = [
       assert.deepEqual(game.finishOrder, [0]);
       assert.equal(game.players[0].inventory.includes('flask_acid'), false);
       assert.equal(game.players[0].inventory.includes('flask_fire'), false);
-      assert.match(game.objective(0), /סיים/);
+      assert.equal(game.objective(0), game.activity(0));
+      assert.match(game.activity(0), /מקליד|שופך/);
       for (const cmd of [{ op: 'look' }, { op: 'go', room: 'lab' }, null, {}, { op: 'enter_code', code: solution.clockCode }]) {
         assert.equal(game.act(0, cmd).ok, false);
         assert.match(game.act(0, cmd).text, /כבר יצאת/);
@@ -90,7 +91,7 @@ module.exports = [
     const game = new Game('layout');
     assert.notDeepEqual(game.solution(), new Game('another layout').solution());
     assert.deepEqual(ROOMS_ORDER, ['lab', 'storage', 'minefield', 'vault']);
-    const kinds = new Set('cauldron bottle book shelf desk drawer key clock painting globe skull candles statue rug door crate scale barrel sack anvil toolbox mirror poster sign armor banner bones vault_door keypad seal board paper cabinet note safe portrait chest coin telescope gold flask rack valve magnifier'.split(' '));
+    const kinds = new Set('prop cauldron bottle book shelf desk drawer key clock painting globe skull candles statue rug door crate scale barrel sack anvil toolbox mirror poster sign armor banner bones vault_door keypad seal board paper cabinet note safe portrait chest coin telescope gold flask rack valve magnifier'.split(' '));
     for (const [roomId, room] of Object.entries(game.rooms)) {
       assert.match(room.name, /[א-ת]/);
       const ids = new Set();
@@ -185,17 +186,28 @@ module.exports = [
     assert.ok(durationMs(null, null) > 0);
   }],
 
-  ['Audience objectives reflect puzzle milestones and the return trip', () => {
+  ['Audience activity follows actions, discoveries require observation, and the objective alias stays compatible', () => {
     const game = new Game('objectives', 1);
-    assert.match(game.objective(0), /קרח/);
+    assert.equal(game.activity(0), 'עומד במעבדה');
+    assert.deepEqual(game.discoveries(0), []);
     const log = [];
     solve(game, 0, log);
     const replay = new Game('objectives', 1);
-    const objectives = new Set([replay.objective(0)]);
-    for (const { cmd } of log) { replay.act(0, cmd); objectives.add(replay.objective(0)); }
-    for (const word of ['המשקל', 'המוקשים', 'שני המנעולים', 'חוזר למעבדה', 'מכין שיקוי', 'חוזר לכספת', 'החותם', 'סיים']) {
-      assert.ok([...objectives].some(text => text.includes(word)), word);
+    const activities = new Set();
+    for (const { cmd } of log) {
+      replay.act(0, cmd);
+      assert.equal(replay.activity(0), replay.objective(0));
+      activities.add(replay.activity(0));
+      if (cmd.target === 'bookshelf') assert.ok(!replay.discoveries(0).includes('מתכון שיקוי אש'));
+      if (cmd.target === 'notice_board') assert.ok(!replay.discoveries(0).includes('מתכון חומצה'));
     }
+    for (const line of ['בודק את כוננית ספרים', 'מוזג צבע אדום לקדרה', 'מקליד קוד בלוח המקשים']) assert.ok(activities.has(line), line);
+    assert.ok([...activities].some(text => text.startsWith('צועד במשבצת ')));
+    for (const line of ['מתכון שיקוי אש', 'מפתח פליז', `שעה בשעון: ${game.solution().clockTime}`, 'מתכון חומצה']) assert.ok(replay.discoveries(0).includes(line), line);
+    const discoveries = replay.discoveries(0);
+    discoveries.length = 0;
+    assert.ok(replay.discoveries(0).length > 0, 'Return a fresh list');
+    assert.deepEqual(game.discoveries(-1), []);
     assert.equal(game.progress(-1), 0);
     assert.equal(typeof game.objective('bad'), 'string');
     const storage = new Game(1, 1);

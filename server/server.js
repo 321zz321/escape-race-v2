@@ -16,7 +16,7 @@ const { MockBot } = require('../public/mock');
 const PUBLIC = path.resolve(__dirname, '../public');
 const WAITING = 'המרוץ עוד לא התחיל — חכו שהמנחה יתחיל';
 const RESET = 'המרוץ אופס — הפעולה מהמרוץ הקודם בוטלה. בדקו שוב את מצב החדר.';
-const RULES = 'אתם רובוט בחדר בריחה עם ארבעה חדרים ברצף: מעבדה, מחסן, שדה מוקשים וכספת. חקרו, בדקו חפצים ואספו רמזים; חפצים יכולים להסתיר חפצים אחרים, וחלקם חסרי שימוש. השתמשו במזהי החפצים שבסוגריים. חשבו בקול בעברית דרך thought — הקהל רואה אותו בשידור. You are a robot in an escape room with four rooms in a row. Explore and inspect objects; objects can hide other objects, and some are useless. Think out loud in Hebrew in thought.';
+const RULES = 'אתם רובוט בחדר בריחה עם ארבעה חדרים ברצף. חקרו את החדרים ובדקו את החפצים; חפצים יכולים להסתיר חפצים אחרים. השתמשו במזהי החפצים שבסוגריים. חשבו בקול בעברית דרך thought — הקהל רואה אותו בשידור. You are a robot in an escape room with four rooms in a row. Explore and inspect objects; objects can hide other objects. Think out loud in Hebrew in thought.';
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8',
   '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',

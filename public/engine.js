@@ -152,77 +152,160 @@
     const portable = { takeable: true };
     const hidden = parent => ({ hidden: true, parent });
     const door = (id, name, z, description, kind = 'door') => o(id, name, kind, 0, z, description);
+    // Children inherit their container's position below. Discovery opens only one level.
+    const child = (parent, id, name, kind, description, options = {}) =>
+      o(id, name, kind, 0, 0, description, { ...hidden(parent), ...options });
     const rooms = {
       lab: { name: 'המעבדה', objects: [
         o('cauldron', 'קדרה', 'cauldron', -2.8, -0.6, 'קדרת ברזל רחבה, עם ידיות עבות ושפה כהה.'),
-        o('drain_valve', 'ברז ניקוז', 'valve', -3.7, -0.6, 'ברז קטן מחובר לתחתית הקדרה.'),
-        o('dye_red', 'בקבוק צבע אדום', 'bottle', -4.2, -2.8, 'בקבוק זכוכית עם פקק עגול וצבע אדום בתוכו.', { ...portable, color: 'red' }),
-        o('dye_yellow', 'בקבוק צבע צהוב', 'bottle', -4.2, -2.1, 'בקבוק זכוכית עם פקק עגול וצבע צהוב בתוכו.', { ...portable, color: 'yellow' }),
-        o('dye_blue', 'בקבוק צבע כחול', 'bottle', -4.2, -1.4, 'בקבוק זכוכית עם פקק עגול וצבע כחול בתוכו.', { ...portable, color: 'blue' }),
-        o('ink_black', 'בקבוק דיו שחור', 'bottle', -4.2, 0.5, 'דיו כהה ממלא בקבוק צר. סביב הפקק יש כתם יבש.', { ...portable, color: 'black' }),
-        o('glitter', 'צנצנת נצנצים', 'bottle', -4.2, 1.2, 'גרגרים כסופים נצמדים לדפנות הצנצנת.', { ...portable, color: 'silver' }),
-        o('empty_bottle', 'בקבוק ריק', 'bottle', -4.2, 1.9, 'בקבוק רחב וריק, עם שארית של תווית נייר.', { ...portable, color: 'clear' }),
-        o('flask_rack', 'מעמד בקבוקונים', 'rack', -3.6, 3.2, 'בקבוקוני זכוכית קטנים עומדים בשורות על מעמד עץ.'),
-        o('bookshelf', 'כוננית ספרים', 'shelf', 4.3, -2.7, 'כוננית עץ גבוהה. כמה ספרים מונחים בשכיבה על המדף האמצעי.'),
-        o('recipe_book', 'ספר מתכונים', 'book', 4.0, -3.1, 'ספר עבה, עם כריכה מוכתמת ופינות מקופלות.', hidden('bookshelf')),
-        o('star_atlas', 'אטלס כוכבים', 'book', 4.0, -2.7, 'מפות שמיים וציורים קטנים של קבוצות כוכבים ממלאים את הדפים.', hidden('bookshelf')),
-        o('poetry_book', 'ספר שירים', 'book', 4.0, -2.3, 'שירים קצרים על גשם, חלונות ודרכים רחוקות.', hidden('bookshelf')),
-        o('desk', 'שולחן כתיבה', 'desk', 3.1, 0.1, 'שולחן עץ נמוך, עם סימני כוסות על המשטח.'),
-        o('desk_drawer', 'מגירת השולחן', 'drawer', 3.1, -0.5, 'מגירה צרה עם ידית פליז עגולה.', hidden('desk')),
-        o('brass_key', 'מפתח פליז', 'key', 3.1, -0.5, 'מפתח קטן וכבד מעט, עם ראש עגול.', { ...hidden('desk_drawer'), ...portable }),
+        child('cauldron', 'drain_valve', 'ברז ניקוז', 'valve', 'ברז קטן מחובר לתחתית הקדרה.'),
+        o('potion_cabinet', 'ארון זכוכית', 'cabinet', -4.2, -2.5, 'ארון עם דלתות זכוכית עכורות וידיות נחושת.'),
+        child('potion_cabinet', 'olive_oil', 'בקבוק שמן זית', 'bottle', 'על התווית מצויר ענף זית. הנוזל בפנים צהבהב.', { ...portable, color: 'yellow' }),
+        child('potion_cabinet', 'dye_blue', 'בקבוק צבע כחול', 'bottle', 'על התווית כתוב צבע כחול. משקע כחול מכסה את התחתית.', { ...portable, color: 'blue' }),
+        child('potion_cabinet', 'perfume', 'בקבוק בושם', 'bottle', 'בקבוק קטן עם פקק פרחוני וריח מתקתק.', { ...portable, color: 'clear' }),
+        child('potion_cabinet', 'ink_black', 'בקבוק דיו שחור', 'bottle', 'דיו כהה ממלא בקבוק צר. סביב הפקק כתם יבש.', { ...portable, color: 'black' }),
+        child('potion_cabinet', 'dye_red', 'בקבוק צבע אדום', 'bottle', 'על התווית כתוב צבע אדום. טיפה אדומה יבשה על הפקק.', { ...portable, color: 'red' }),
+        child('potion_cabinet', 'vinegar', 'בקבוק חומץ', 'bottle', 'בקבוק שקוף עם תווית חומץ וריח חד.', { ...portable, color: 'clear' }),
+        child('potion_cabinet', 'glitter', 'צנצנת נצנצים', 'bottle', 'גרגרים כסופים נצמדים לדפנות הצנצנת.', { ...portable, color: 'silver' }),
+        child('potion_cabinet', 'dye_yellow', 'בקבוק צבע צהוב', 'bottle', 'על התווית כתוב צבע צהוב. הזכוכית מוכתמת סביב הצוואר.', { ...portable, color: 'yellow' }),
+        o('tall_cupboard', 'ארון גבוה', 'cabinet', -3.6, 3.2, 'ארון עץ גבוה עם שתי דלתות סגורות.'),
+        child('tall_cupboard', 'apron', 'סינר', 'prop', 'סינר בד עם כיס קרוע וכתמי שעווה.'),
+        child('tall_cupboard', 'flask_rack', 'מעמד בקבוקונים', 'rack', 'בקבוקוני זכוכית קטנים עומדים בשורות על מעמד עץ.'),
+        child('tall_cupboard', 'gloves', 'כפפות', 'prop', 'זוג כפפות גומי יבשות ומקומטות.'),
+        child('tall_cupboard', 'broom', 'מטאטא', 'prop', 'סיבי קש קשורים בקצה מקל עץ.'),
+        o('bookshelf', 'כוננית ספרים', 'shelf', 4.3, -2.7, 'כוננית עץ גבוהה. כריכות וחפצים קטנים מצטופפים על מדפיה.'),
+        child('bookshelf', 'cookbook', 'ספר בישול', 'book', 'עוגת תפוחים, מרק בצל ולחם שיפון. בשוליים כתמי קמח.'),
+        child('bookshelf', 'star_atlas', 'אטלס כוכבים', 'book', 'מפות שמיים וציורים קטנים של קבוצות כוכבים ממלאים את הדפים.'),
+        child('bookshelf', 'recipe_book', 'ספר כתוב ביד', 'book', 'ספר עבה עם כריכה מוכתמת ופינות מקופלות.'),
+        child('bookshelf', 'poetry_book', 'ספר שירים', 'book', 'שירים קצרים על גשם, חלונות ודרכים רחוקות.'),
+        child('bookshelf', 'dictionary', 'מילון', 'book', 'מילים מסודרות לפי האלפבית. כמה דפים דבוקים זה לזה.'),
+        child('bookshelf', 'diary_old', 'יומן ישן', 'book', 'רשימות על מזג האוויר ועל ביקורים בשוק.'),
+        child('bookshelf', 'empty_folder', 'תיקייה', 'book', 'שתי כנפי קרטון וגומייה רפויה. אין בפנים דפים.'),
+        child('bookshelf', 'skull', 'גולגולת', 'skull', 'גולגולת בהירה מונחת על בד מקופל.'),
+        child('bookshelf', 'cat_statue', 'פסל חתול', 'statue', 'חתול אבן קטן עם זנב כרוך סביב רגליו.'),
+        o('desk', 'שולחן כתיבה', 'desk', 3.1, 0.1, 'שולחן עץ נמוך עם סימני כוסות על המשטח.'),
+        child('desk', 'desk_drawer', 'מגירת השולחן', 'drawer', 'מגירה צרה עם ידית פליז עגולה.'),
+        child('desk_drawer', 'pencils', 'עפרונות', 'prop', 'שלושה עפרונות קצרים עם קצוות קהים.'),
+        child('desk_drawer', 'eraser', 'מחק', 'prop', 'מחק אפור שחוק משני צדדיו.'),
+        child('desk_drawer', 'brass_key', 'מפתח פליז', 'key', 'מפתח קטן וכבד מעט עם ראש עגול.', portable),
+        child('desk_drawer', 'ink_pen', 'עט דיו', 'prop', 'עט מתכת עם ציפורן עקומה.'),
+        child('desk_drawer', 'old_receipt', 'קבלה ישנה', 'paper', 'תשלום עבור נרות, סבון ובד. הדיו דהוי.'),
+        child('desk', 'globe', 'גלובוס', 'globe', 'גלובוס קטן על בסיס מתכת. שמות ארצות מודפסים באותיות צפופות.'),
+        child('desk', 'candles', 'נרות', 'candles', 'שלושה נרות בגבהים שונים עם טיפות שעווה על התחתית.'),
         o('wall_clock', 'שעון קיר', 'clock', 1.7, -4.7, 'שעון עגול עם ספרות גדולות ומסגרת עץ.'),
+        o('calendar', 'לוח שנה', 'poster', -0.5, -4.7, 'לוח שנה גדול. הדפים תלויים על מסמר חלוד.'),
+        o('barometer', 'ברומטר', 'clock', 3.4, -4.7, 'מחוג דק ניצב בין המילים יבש וגשום.'),
+        o('old_map', 'מפת קיר', 'painting', -4.7, 0.8, 'מפה גדולה של חוף מפורץ. קפל חוצה את הנייר.'),
         o('painting', 'ציור נוף', 'painting', -2.2, -4.7, 'שביל צר מתפתל בין עצים בציור במסגרת כהה.'),
-        o('globe', 'גלובוס', 'globe', 3.5, 0.6, 'גלובוס קטן ניצב על בסיס מתכת. שמות ארצות מודפסים באותיות צפופות.'),
-        o('skull', 'גולגולת', 'skull', 4.0, 2.5, 'גולגולת בהירה מונחת על בד מקופל.'),
-        o('candles', 'נרות', 'candles', 2.6, 0.6, 'שלושה נרות בגבהים שונים, עם טיפות שעווה על התחתית.'),
-        o('cat_statue', 'פסל חתול', 'statue', 3.6, 3.8, 'חתול אבן קטן יושב זקוף, עם זנב כרוך סביב רגליו.'),
+        o('chest_lab', 'ארגז בגדים', 'chest', 3.7, 3.7, 'ארגז עץ רחב עם מכסה כבד וריח בד ישן.'),
+        child('chest_lab', 'old_clothes', 'בגדים ישנים', 'prop', 'מעילים מקופלים עם כפתורים חסרים.'),
+        child('chest_lab', 'broken_spectacles', 'משקפיים שבורים', 'prop', 'מסגרת דקה ובתוכה עדשה סדוקה אחת.'),
         o('rug', 'שטיח', 'rug', 0, 0.6, 'שטיח ארוג עם פסים רחבים ושוליים מעט פרומים.'),
-        door('ice_door', 'דלת הקרח', 4.8, 'שכבת קרח עבה מכסה את הדלת ואת הידית.')
+        child('rug', 'trapdoor', 'דלת רצפה', 'door', 'לוחות עץ ממוסמרים למסגרת. המכסה אינו זז.', { stuck: true }),
+        child('tall_cupboard', 'stool', 'שרפרף מתקפל', 'prop', 'שרפרף עץ מקופל עם מושב שחוק.'),
+        o('sink', 'כיור', 'prop', -4.3, 2, 'כיור אבן עמוק עם מדף רחב וכתמים בהירים.'),
+        child('sink', 'herb_basket', 'סל עשבים', 'prop', 'סל קטן על שפת הכיור, מלא עלים יבשים וגבעולים.'),
+        door('ice_door', 'דלת מכוסה קרח', 4.8, 'שכבת קרח עבה מכסה את הדלת ואת הידית.')
       ], doors: [{ id: 'ice_door', to: 'storage', x: 0, z: 4.8 }] },
       storage: { name: 'המחסן', objects: [
         door('ice_door', 'הדלת למעבדה', -4.8, 'דלת עץ רחבה מובילה בחזרה למעבדה.'),
         o('scale', 'משקל רצפה', 'scale', 2.8, 2.6, 'משטח מתכת רחב מחובר ללוח תצוגה קטן.'),
         door('gate', 'שער ברזל', 4.8, 'שער עשוי מוטות ברזל עבים עומד בקצה המחסן.'),
         o('gate_sign', 'שלט ליד השער', 'sign', 1.4, 4.7, 'שלט מתכת מוברג לקיר לצד השער.'),
+        o('tarp', 'יריעת בד', 'rug', -3.1, -1.1, 'יריעת בד גדולה מכסה ערמה בעלת פינות ישרות.'),
         ...Array.from({ length: 6 }, (_, i) => o(`crate_${i + 1}`, `ארגז ${i + 1}`, 'crate',
-          -3.7 + (i % 2) * 1.5, -2.6 + Math.floor(i / 2) * 1.7, 'ארגז עץ סגור, עם חבל עבה ותווית על הצד.', portable)),
-        o('barrel', 'חבית', 'barrel', 4.0, -3.4, 'חבית עץ עם חישוקי מתכת ומכסה שטוח.'),
-        o('sand_sack', 'שק חול', 'sack', 3.8, -1.8, 'שק בד קשור בחבל. על התווית כתוב: 9 ק״ג.', portable),
-        o('anvil', 'סדן', 'anvil', 4.0, -0.3, 'גוש ברזל גדול ניצב על בסיס עץ עבה.'),
-        o('toolbox', 'ארגז כלים', 'toolbox', -3.8, 3.2, 'ארגז מתכת נמוך, עם ידית שחוקה ומכסה צבוע.'),
-        o('magnifier', 'זכוכית מגדלת', 'magnifier', -3.8, 3.2, 'עדשה עגולה עם ידית עץ קצרה.', { ...hidden('toolbox'), ...portable }),
-        o('mirror', 'מראה', 'mirror', -4.7, 1.0, 'מראה צרה תלויה במסגרת ברזל דקה.'),
-        o('poster', 'כרזה', 'poster', 2.0, -4.7, 'איור ישן של עגלה עמוסה תלוי על הקיר.'),
-        o('shelf', 'מדף עץ', 'shelf', -4.7, -1.6, 'מדף נמוך ועליו כלי חרס מאובקים.')
+          -3.7 + (i % 2) * 1.5, -2.6 + Math.floor(i / 2) * 1.7,
+          'ארגז עץ סגור עם חבל עבה ותווית על הצד.', { ...portable, ...hidden('tarp') })),
+        child('tarp', 'sand_sack', 'שק חול', 'sack', 'שק בד קשור בחבל. על התווית כתוב: 9 ק״ג.', portable),
+        o('shelf_storage', 'מדף עץ', 'shelf', -4.7, -1.6, 'מדף עץ רחב ועליו כלי עבודה וקופסאות.'),
+        child('shelf_storage', 'paint_cans', 'פחיות צבע', 'prop', 'מכסי הפחיות מכוסים בצבע יבש.'),
+        child('shelf_storage', 'rope', 'חבל', 'prop', 'חבל עבה מגולגל ומלא קשרים.'),
+        child('shelf_storage', 'lantern', 'עששית', 'prop', 'עששית עם זכוכית מפויחת ופתיל קצר.'),
+        o('toolbox', 'ארגז כלים', 'toolbox', -3.8, 3.2, 'ארגז מתכת עם ידית שחוקה ומכסה צבוע.'),
+        child('toolbox', 'magnifier', 'זכוכית מגדלת', 'magnifier', 'עדשה עגולה עם ידית עץ קצרה.', portable),
+        child('toolbox', 'hammer', 'פטיש', 'prop', 'ראש ברזל על ידית עץ מוכתמת.', portable),
+        child('toolbox', 'nails', 'מסמרים', 'prop', 'מסמרים עקומים בקופסת פח קטנה.'),
+        child('toolbox', 'screwdriver', 'מברג', 'prop', 'מברג עם קצה שחוק וידית אדומה.', portable),
+        o('barrel', 'חבית', 'barrel', 4, -3.4, 'חבית עץ עם חישוקי מתכת. המכסה תקוע ואינו זז.', { stuck: true }),
+        o('anvil', 'סדן', 'anvil', 4, -0.3, 'גוש ברזל גדול על בסיס עץ עבה.'),
+        o('mirror', 'מראה', 'mirror', -4.7, 1, 'מראה צרה תלויה במסגרת ברזל דקה.'),
+        o('poster', 'כרזה', 'poster', 2, -4.7, 'איור ישן של עגלה עמוסה תלוי על הקיר.'),
+        o('ladder', 'סולם', 'prop', 4.6, 1.3, 'סולם עץ רחב נשען על הקיר.'),
+        o('wheelbarrow', 'מריצה', 'prop', 2, -2.8, 'מריצת מתכת עם גלגל שטוח ושאריות טיח.'),
+        o('cardboard_boxes', 'קופסאות קרטון', 'chest', -1.5, 3.1, 'קופסאות רחבות קשורות בחוט דק.'),
+        child('cardboard_boxes', 'empty_jars', 'צנצנות ריקות', 'prop', 'צנצנות זכוכית עטופות בבד.'),
+        child('cardboard_boxes', 'newspapers', 'עיתונים', 'paper', 'תוצאות מרוץ סוסים ופרסומות לסבון על נייר מצהיב.')
       ], doors: [{ id: 'ice_door', to: 'lab', x: 0, z: -4.8 }, { id: 'gate', to: 'minefield', x: 0, z: 4.8 }] },
       minefield: { name: 'שדה המוקשים', objects: [
         door('gate', 'השער למחסן', -4.8, 'שער ברזל רחב מפריד בין הלוח למחסן.'),
         door('far_door', 'הדלת הרחוקה', 4.8, 'דלת עץ כהה ניצבת מעבר לקצה הלוח.'),
-        o('warning_sign', 'שלט הוראות', 'sign', -4.4, -3.8, 'כל מספר אומר כמה מוקשים נוגעים במשבצת, גם באלכסון. אפשר לבחור משבצת ליד שטח שכבר נחשף; ההליכה אליו אוטומטית. משבצת ריקה חושפת גם את סביבתה. מוקש מחזיר להתחלה, אבל המשבצות שנחשפו נשארות גלויות.'),
+        o('warning_sign', 'שלט חרוט על הקיר', 'sign', -4.4, -3.8, 'באבן חרוט: כל מספר מונה את המוקשים הנוגעים במשבצת, גם באלכסון. הצעד הבא סמוך לשטח שנחשף; הדרך בשטח הגלוי נדרכת מאליה. אפס חושף את סביבתו. פיצוץ משיב אל ההתחלה, אך הגלוי נשאר גלוי.'),
         o('armor', 'שריון', 'armor', 4.4, -2.8, 'שריון מתכת חלול ניצב על מעמד עץ.'),
-        o('banner', 'דגל בד', 'banner', -4.7, 1.5, 'דגל ארוך דהה בשמש. בשוליו רקומים קווים זהובים.'),
-        o('bones', 'עצמות', 'bones', 4.4, 3.0, 'כמה עצמות בהירות מונחות ליד הקיר.')
+        child('armor', 'helmet', 'קסדה', 'prop', 'קסדה מונחת בחלל השריון. רצועת הסנטר קרועה.'),
+        child('armor', 'armor_lining', 'בטנת בד', 'prop', 'בד עבה ומרופט דבוק למתכת.'),
+        o('banner', 'דגל בד', 'banner', -4.7, 1.5, 'דגל ארוך דהוי. בשוליו רקומים קווים זהובים.'),
+        o('bones', 'ערמת עצמות', 'bones', 4.4, 3, 'ערמת עצמות גדולה מונחת ליד הקיר.'),
+        child('bones', 'tooth', 'שן', 'prop', 'שן שטוחה וצהבהבה בין העצמות.'),
+        o('torch_holder', 'מתקן לפידים', 'prop', -4.6, -1.6, 'מתקן ברזל גבוה מחובר לקיר בשלושה ברגים.'),
+        child('torch_holder', 'spent_torch', 'לפיד כבוי', 'prop', 'קצה עץ שרוף עטוף ברצועת בד.'),
+        o('cracked_shield', 'מגן סדוק', 'prop', 4.7, 0, 'מגן גדול ושסוע תלוי על וו.'),
+        child('cracked_shield', 'leather_straps', 'רצועות עור', 'prop', 'רצועות עור קשיחות בצדו האחורי של המגן.'),
+        o('stone_bench', 'ספסל אבן', 'prop', -4.5, 3.4, 'ספסל אבן ארוך וצמוד לקיר.'),
+        child('stone_bench', 'satchel', 'תיק בד', 'chest', 'תיק מקופל מונח תחת הספסל.'),
+        child('satchel', 'cloth_scraps', 'שאריות בד', 'prop', 'פיסות בד בשלושה גוונים של אפור.'),
+        child('satchel', 'buttons', 'כפתורים', 'prop', 'כפתורי עץ עגולים ומחוררים.'),
+        o('stone_chest', 'תיבת אבן', 'chest', 4.4, 4, 'תיבת אבן גדולה. המכסה תפוס תחת הקיר ואינו זז.', { stuck: true }),
+        o('weapons_rack', 'מעמד נשק', 'rack', 4.5, -4, 'מעמד עץ גבוה עם חריצים ארוכים.'),
+        child('weapons_rack', 'rusty_sword', 'חרב חלודה', 'prop', 'להב קהה עם כתמי חלודה.'),
+        child('weapons_rack', 'broken_spear', 'חנית שבורה', 'prop', 'מוט קצר עם חוד אבן סדוק.'),
+        o('wall_niche', 'גומחת קיר', 'shelf', -4.7, 0, 'גומחה רחבה ועמוקה חצובה באבן.'),
+        child('wall_niche', 'pottery_shards', 'שברי חרס', 'prop', 'שברי חרס אדמדם עם זיגוג מתקלף.'),
+        child('wall_niche', 'clay_bowl', 'קערת חרס', 'prop', 'קערה ריקה עם שפה עבה.'),
+        child('wall_niche', 'smooth_stones', 'אבנים חלקות', 'prop', 'חלוקי נחל אפורים מאובקים.')
       ], doors: [{ id: 'gate', to: 'storage', x: 0, z: -4.8 }, { id: 'far_door', to: 'vault', x: 0, z: 4.8 }] },
       vault: { name: 'חדר הכספת', objects: [
         door('far_door', 'הדלת לשדה המוקשים', -4.8, 'דלת עץ כבדה מובילה בחזרה ללוח המשבצות.'),
-        door('vault_door', 'דלת הכספת', 4.8, 'דלת מתכת עבה, עם לוח מקשים וחותם חלוד.', 'vault_door'),
-        o('keypad', 'לוח מקשים', 'keypad', -0.9, 4.7, 'מקשי ספרות מסודרים מתחת לחלון תצוגה צר.'),
-        o('rust_seal', 'חותם חלוד', 'seal', 0.9, 4.7, 'חותם מתכת חום מחבר בין הדלת למסגרת.'),
-        o('notice_board', 'לוח מודעות', 'board', -4.7, -2.1, 'לוח שעם עם פיסות נייר וסיכות קטנות.'),
-        o('torn_page', 'דף תלוש', 'paper', -4.5, -2.1, 'דף עם קצה קרוע וכתמים עגולים.', hidden('notice_board')),
-        o('cabinet', 'ארונית', 'cabinet', 3.8, -2.4, 'ארונית עץ קטנה, עם חור מפתח בידית.'),
-        o('note', 'פתק מקופל', 'note', 3.8, -2.4, 'פתק בהיר מקופל לשניים.', hidden('cabinet')),
-        o('grandfather_clock', 'שעון עומד', 'clock', -3.8, 3.4, 'שעון גבוה בתוך ארון עץ, עם מטוטלת מבריקה.'),
-        o('small_safe', 'כספת קטנה', 'safe', 4.0, 0, 'הדלת הקטנה תלויה על ציר שבור. בפנים ריק.'),
-        o('portrait', 'דיוקן', 'portrait', 2.0, -4.7, 'דיוקן של אדם במעיל כהה, על רקע חלון פתוח.'),
+        door('vault_door', 'דלת הכספת', 4.8, 'דלת מתכת עבה עם לוח מקשים וחותם חלוד.', 'vault_door'),
+        child('vault_door', 'keypad', 'לוח מקשים', 'keypad', 'מקשי ספרות מסודרים מתחת לחלון תצוגה צר.'),
+        child('vault_door', 'rust_seal', 'חותם חלוד', 'seal', 'חותם מתכת חום מחבר בין הדלת למסגרת.'),
+        o('notice_board', 'לוח מודעות', 'board', -4.7, -2.1, 'לוח שעם עמוס בניירות נעוצים זה על גבי זה.'),
+        child('notice_board', 'old_notice', 'מודעה ישנה', 'paper', 'ביום חמישי ייצבע חדר המדרגות. החתימה דהויה.'),
+        child('notice_board', 'wanted_poster', 'כרזת מבוקש', 'paper', 'ציור של גבר בכובע ולצדו חותמת אדומה.'),
+        child('notice_board', 'torn_page', 'דף תלוש', 'paper', 'דף עם קצה קרוע וכתמים עגולים.'),
+        child('notice_board', 'menu', 'תפריט', 'paper', 'תה, לחם, זיתים ומרק היום.'),
+        child('notice_board', 'bank_hours', 'שעות פתיחה', 'paper', 'קבלת קהל בבוקר בלבד. סגור בשבת.'),
+        o('cabinet', 'ארונית', 'cabinet', 3.8, -2.4, 'ארונית עץ קטנה עם חור מפתח בידית.'),
+        child('cabinet', 'ledger', 'פנקס חשבונות', 'book', 'טורים של תאריכים וסכומים, רובם מחוקים.'),
+        child('cabinet', 'note', 'פתק מקופל', 'note', 'פתק בהיר מקופל לשניים.'),
+        child('cabinet', 'stamp', 'חותמת', 'prop', 'חותמת עץ עם כרית דיו יבשה.'),
+        o('desk_vault', 'שולחן משרדי', 'desk', 2.5, 0.8, 'שולחן רחב עם משטח ירוק ושוליים שרוטים.'),
+        child('desk_vault', 'papers_pile', 'ערמת ניירות', 'paper', 'טפסים ריקים וגיליונות עם קווים צפופים.'),
+        o('grandfather_clock', 'שעון עומד', 'clock', -3.8, 3.4, 'שעון גבוה בתוך ארון עץ עם מטוטלת מבריקה.'),
+        o('small_safe', 'כספת קטנה', 'safe', 4, 0, 'הדלת הקטנה תלויה על ציר שבור. בפנים ריק.'),
+        o('portrait', 'דיוקן', 'portrait', 2, -4.7, 'דיוקן של אדם במעיל כהה על רקע חלון פתוח.'),
         o('chest', 'תיבת עץ', 'chest', -3.8, 0.4, 'תיבה נמוכה עם רצועות מתכת על המכסה.'),
-        o('gold_coin', 'מטבע זהב', 'coin', -3.8, 0.4, 'מטבע עגול עם ציור של ציפור.', { ...hidden('chest'), ...portable }),
-        o('telescope', 'טלסקופ', 'telescope', 3.7, 3.5, 'צינור פליז ארוך נשען על חצובה קטנה.'),
-        o('gold_pile', 'ערמת זהב', 'gold', -2.6, 2.2, 'מטבעות וגושים קטנים מונחים בערמה על מגש.')
+        child('chest', 'gold_coin', 'מטבע זהב', 'coin', 'מטבע עגול עם ציור של ציפור.', portable),
+        child('chest', 'velvet_pouch', 'שקיק קטיפה', 'prop', 'שקיק רך וריק עם שרוך קצר.'),
+        o('telescope', 'טלסקופ', 'telescope', 3.7, 3.5, 'צינור פליז ארוך נשען על חצובה.'),
+        o('gold_pile', 'ערמת זהב', 'gold', -2.6, 2.2, 'ערמה גדולה של מטבעות וגושים על מגש.'),
+        o('coat_rack', 'מתלה מעילים', 'prop', -2, -3.5, 'מתלה עץ גבוה עם ווים עקומים.'),
+        child('coat_rack', 'dusty_coat', 'מעיל מאובק', 'prop', 'מעיל צמר כבד. הכיסים ריקים.'),
+        o('umbrella_stand', 'מעמד מטריות', 'prop', 3.6, -4, 'מעמד מתכת רחב עם תחתית מחוררת.'),
+        child('umbrella_stand', 'bent_umbrella', 'מטרייה עקומה', 'prop', 'מטרייה עם מוט כפוף ובד דהוי.')
       ], doors: [{ id: 'far_door', to: 'minefield', x: 0, z: -4.8 }, { id: 'vault_door', to: 'exit', x: 0, z: 4.8 }] }
     };
+    for (const room of Object.values(rooms)) {
+      for (const obj of room.objects) {
+        if (obj.parent && obj.kind !== 'crate') {
+          const parent = room.objects.find(entry => entry.id === obj.parent);
+          obj.x = parent.x;
+          obj.z = parent.z;
+        }
+      }
+    }
     return freeze(rooms);
   }
+
 
   function recipeText(recipe, title, color) {
     return `${title}: ${Object.keys(recipe).filter(key => recipe[key]).map(key => (recipe[key] === 1 ? `מנה אחת ${COLORS[key]}` : `${recipe[key]} מנות ${COLORS[key]}`)).join(' + ')} = ${COLORS[color]}.`;
@@ -293,20 +376,47 @@
       return p ? [p.doors.ice_door, p.doors.gate, p.doors.far_door, p.locks.keypad, p.locks.seal].filter(Boolean).length / 5 : 0;
     }
 
-    objective(i) {
+    activity(i) {
       const p = this._player(i);
       if (!p) return 'ממתין לשחקן';
-      if (p.escaped) return 'יצא מהכספת וסיים את המרוץ';
-      if (!p.doors.ice_door) return 'מנסה להמיס את דלת הקרח';
-      if (!p.doors.gate) return 'מחפש את המשקל המדויק';
-      if (!p.doors.far_door) return 'חוצה את שדה המוקשים';
-      if (!p.locks.seal && p.read.includes('torn_page')) {
-        if (p.inventory.includes('flask_acid')) return p.room === 'vault' ? 'מנסה להמיס את החותם החלוד' : 'חוזר לכספת עם השיקוי';
-        return p.room === 'lab' ? 'מכין שיקוי לפי הדף התלוש' : 'חוזר למעבדה להכין את השיקוי';
-      }
-      if (p.locks.seal) return 'מחפש את הקוד לדלת הכספת';
-      if (p.locks.keypad) return 'מחפש דרך לפתוח את החותם החלוד';
-      return 'צריך לפתוח את שני המנעולים של הכספת';
+      return p.lastActivity || 'עומד במעבדה';
+    }
+    objective(i) { return this.activity(i); }
+
+    discoveries(i) {
+      const p = this._player(i);
+      if (!p) return [];
+      const found = [];
+      if (p.read.includes('recipe_book')) found.push('מתכון שיקוי אש');
+      if (p.discovered.includes('brass_key')) found.push('מפתח פליז');
+      if (p.read.includes('wall_clock')) found.push(`שעה בשעון: ${this._solution.clockTime}`);
+      if (p.read.includes('gate_sign')) found.push(`משקל בשלט: ${this._solution.target} ק״ג`);
+      if (p.read.includes('warning_sign')) found.push('כתובת המשבצות');
+      if (p.read.includes('torn_page')) found.push('מתכון חומצה');
+      if (p.read.includes('note')) found.push('פתק על השעון במעבדה');
+      return found;
+    }
+
+    _activity(cmd, result) {
+      const name = id => this._name(id);
+      // Failed guesses must not disclose an unseen object's identity or imply success.
+      if (result.ev.some(e => e.t === 'boom')) return 'חוזר לתחילת הלוח אחרי פיצוץ';
+      if (!result.ok) return result.ev.some(e => e.t === 'code') ? 'מקליד קוד בלוח המקשים' : 'מנסה פעולה בחדר';
+      if (cmd.op === 'look') return 'מסתכל סביב בחדר';
+      if (cmd.op === 'inventory') return 'בודק את החפצים שבידיו';
+      if (cmd.op === 'inspect') return `בודק את ${name(cmd.target)}`;
+      if (cmd.op === 'take') return `לוקח ${cmd.target === 'flask_rack' ? 'בקבוקון מהמעמד' : name(cmd.target)}`;
+      if (cmd.op === 'drop') return `מניח ${name(cmd.item)} על הרצפה`;
+      if (cmd.op === 'go') return `עובר אל ${this.rooms[cmd.room].name}`;
+      if (cmd.op === 'step') return `צועד במשבצת ${cmd.row},${cmd.col}`;
+      if (cmd.op === 'enter_code') return 'מקליד קוד בלוח המקשים';
+      if (own(DYES, cmd.item) && cmd.target === 'cauldron') return `מוזג ${cmd.item === 'ink_black' ? 'דיו שחור' : `צבע ${COLORS[DYES[cmd.item]]}`} לקדרה`;
+      if (cmd.item === 'flask' && cmd.target === 'cauldron') return 'ממלא בקבוקון מהקדרה';
+      if (cmd.item === 'drain_valve') return 'מסובב את ברז הניקוז';
+      if (cmd.item === 'brass_key' && cmd.target === 'cabinet') return 'מסובב מפתח בארונית';
+      if (cmd.target === 'scale') return `מניח ${name(cmd.item)} על המשקל`;
+      if (cmd.item.startsWith('flask_')) return `שופך נוזל על ${name(cmd.target)}`;
+      return `משתמש ב${name(cmd.item)}`;
     }
 
     _player(i) { return Number.isInteger(i) && i >= 0 && i < this.players.length ? this.players[i] : null; }
@@ -397,6 +507,13 @@
       if (p.escaped) return this._fail(i, 'כבר יצאת מהחדרים וסיימת את המרוץ.');
       const cmd = command(raw);
       if (!cmd) return this._fail(i, 'הפעולה אינה תקינה. יש לציין פעולה מוכרת ואת הפרטים שלה.');
+      const result = this._act(i, cmd);
+      p.lastActivity = this._activity(cmd, result);
+      return result;
+    }
+
+    _act(i, cmd) {
+      const p = this.players[i];
       const ev = [];
       switch (cmd.op) {
         case 'look': return this._look(i);
@@ -436,8 +553,8 @@
       this._event(i, ev, 'inspect', { obj: id });
       let text = obj.description;
       if (id === 'recipe_book') text = `${recipeText(this._solution.fireRecipe, 'שיקוי אש', 'orange')} הדף הבא נתלש.`;
-      else if (id === 'torn_page') text = `${recipeText(this._solution.acidRecipe, 'שיקוי חומצה', this._solution.acidColor)} ממיס חלודה.`;
-      else if (id === 'note') text = 'הקוד הוא השעה שבה נעצר השעון במעבדה, בספרות בלי נקודתיים.';
+      else if (id === 'torn_page') text = recipeText(this._solution.acidRecipe, 'שיקוי חומצה', this._solution.acidColor);
+      else if (id === 'note') text = 'השעה שבה נעצר השעון במעבדה, בספרות בלי נקודתיים.';
       else if (id === 'wall_clock') text = `השעון עומד על ${this._solution.clockTime}. המחוגים לא זזים.`;
       else if (id === 'grandfather_clock') text = `השעון מראה ${this._solution.decoyTime}. המטוטלת נעה והשעון מתקתק.`;
       else if (id === 'gate_sign') text = `השער ייפתח כשעל המשקל יהיו בדיוק ${this._solution.target} ק״ג.`;
@@ -455,7 +572,7 @@
       else if (id === 'keypad') text += p.locks.keypad ? ' המנעול פתוח.' : ' המנעול סגור.';
       else if (id === 'rust_seal' && p.locks.seal) text = 'החותם הוסר. נשאר סימן כהה על המתכת.';
       else if (p.doors[id]) text += ' הדלת פתוחה.';
-      else text += this._reveal(i, ev, id);
+      if (id !== 'cabinet' && !obj.stuck) text += this._reveal(i, ev, id);
       if (!p.read.includes(id)) p.read.push(id);
       return this._ok(text, ev);
     }
@@ -566,8 +683,9 @@
 
     _code(i, code, ev) {
       const p = this.players[i];
-      if (p.room !== 'vault') return this._fail(i, 'אין כאן לוח מקשים להזנת קוד.', ev);
-      this._move(i, ev, this._object(p, 'keypad'));
+      const keypad = this._object(p, 'keypad');
+      if (!keypad) return this._fail(i, 'אין כאן לוח מקשים גלוי להזנת קוד.', ev);
+      this._move(i, ev, keypad);
       p.codeAttempts++;
       const ok = code === this._solution.clockCode;
       this._event(i, ev, 'code', { obj: 'keypad', ok, attempts: p.codeAttempts });

@@ -29,6 +29,7 @@ module.exports = [
     const game = new Game('mixtures', 1);
     const act = cmd => run(game, 0, cmd);
     assert.equal(game.act(0, { op: 'use', item: 'dye_red', target: 'cauldron' }).ok, false);
+    for (const target of ['potion_cabinet', 'tall_cupboard', 'cauldron']) act({ op: 'inspect', target });
     act({ op: 'take', target: 'flask_rack' });
     assert.equal(game.act(0, { op: 'take', target: 'flask_rack' }).ok, false);
     act({ op: 'use', item: 'flask', target: 'cauldron' });
@@ -82,6 +83,7 @@ module.exports = [
     const game = new Game('weights', 1);
     toStorage(game);
     const act = cmd => run(game, 0, cmd);
+    act({ op: 'inspect', target: 'tarp' });
     act({ op: 'take', target: 'crate_1' });
     assert.equal(game.players[0].carrying, 'crate_1');
     assert.equal(game.act(0, { op: 'take', target: 'crate_2' }).ok, false);
