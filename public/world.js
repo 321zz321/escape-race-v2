@@ -5,7 +5,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
-import { mesh, group, dynamic, compact, makeProp, makeRobot, flame, plaque } from './props.js';
+import { mesh, group, dynamic, compact, instances, makeProp, makeRobot, flame, plaque } from './props.js';
 import { material, textured, tileMap, palette, glowMap, backdropMap, random } from './textures.js';
 
 export const ROOMS=['lab','storage','minefield','vault'];
@@ -62,7 +62,49 @@ function architecture(id,name){
     for(const z of [-4.6,4.6])mesh(room,'box',material('vault-brass','#b59660',{metalness:.65}),[0,.045,z],[9.3,.03,.05]);
     for(const x of [-3.4,3.4]){mesh(room,'cylinder',material('vault-brass','#b59660',{metalness:.65}),[x,1.6,-4.65],[.08,3.2,.08]);mesh(room,'sphere',material('sconce','#ffe0a5',{emissive:'#ffe0a5',emissiveIntensity:1}),[x,2.3,-4.45],[.18,.32,.18]);}
   }
+  dressing(room,id);
   compact(room,`architecture:${id}`);return room;
+}
+
+function dressing(room,id){
+  const wood=textured('wood'),iron=material('dressing-iron','#4a5756',{metalness:.55}),cloth=textured('cloth','#c4ad85');
+  // Edge clutter leaves the robot's route and the entire 7 × 9 board unobstructed.
+  const spots=id==='minefield'?[[-4.4,2.5],[4.4,1.2]]:id==='lab'?[[-3.5,-4.2],[3.8,2.15]]:id==='storage'?[[-2.3,-4.15],[3.7,3.8]]:[[-4.2,-4.1],[1.8,3.8]];
+  for(const [x,z] of spots){
+    for(let j=0;j<3;j++){mesh(room,'rounded',cloth,[x+(j%2)*.35,.23+Math.floor(j/2)*.4,z],[.48,.43,.62],[0,j*.3,0]);mesh(room,'torus',wood,[x+(j%2)*.35,.45+Math.floor(j/2)*.4,z],[.07,.07,.07],[Math.PI/2,0,0]);}
+  }
+  if(id!=='minefield'){
+    const x=id==='lab'?-2.8:id==='storage'?.2:-1.1,z=-4.35;
+    for(let j=0;j<3;j++){mesh(room,'box',wood,[x+j*.55,.25,z],[.5,.5,.7]);for(const dx of [-.18,.18])mesh(room,'box',iron,[x+j*.55+dx,.25,z+.36],[.055,.5,.025]);}
+    mesh(room,'box',wood,[x+.35,.75,z],[.62,.5,.65],[0,.13,0]);
+    // A separate upper shelf of noninteractive old volumes and sealed bottles.
+    mesh(room,'box',wood,[-3,2.75,-4.65],[2.7,.1,.6]);
+    const books=Array.from({length:9},(_,i)=>({pos:[-4.12+i*.16,3.02,-4.56],scale:[.12,.43+(i%3)*.045,.32],rot:[0,0,i===7?.12:0]}));
+    instances(room,'box',material('old-book-spines',id==='vault'?'#647f84':'#91704f'),books);
+    const bottles=Array.from({length:6},(_,i)=>({pos:[-2.57+i*.2,2.97,-4.56],scale:[.065,.19,.065]}));
+    instances(room,'cylinder',material('sealed-bottles','#748c70',{roughness:.35,metalness:.2}),bottles);
+    instances(room,'cylinder',wood,bottles.map(b=>({pos:[b.pos[0],3.1,b.pos[2]],scale:[.035,.1,.035]})));
+  }
+  if(id==='lab'||id==='vault'){
+    const chair=group(room,[1.65,0,id==='lab'?2.1:2.7]);chair.rotation.y=-.55;
+    mesh(chair,'box',wood,[0,.65,0],[.65,.12,.65]);for(const x of [-.25,.25])for(const z of [-.25,.25])mesh(chair,'box',wood,[x,.32,z],[.08,.65,.08]);
+    for(const x of [-.26,.26])mesh(chair,'box',wood,[x,1,-.27],[.07,.75,.07]);mesh(chair,'box',id==='vault'?material('chair-velvet','#566d66'):wood,[0,1.16,-.27],[.6,.35,.09]);
+  }
+  // Plumbing, cable clips and cobwebs fill the upper walls without extra lights.
+  for(const y of [.45,3.04]){mesh(room,'cylinder',iron,[1.5,y,-4.77],[.045,5.8,.045],[0,0,Math.PI/2]);for(const x of [-1,1.5,4])mesh(room,'box',iron,[x,y,-4.74],[.09,.15,.07]);}
+  if(id==='lab')for(let i=0;i<6;i++){
+    const x=-3.6+i*.27;mesh(room,'cylinder',wood,[x,2.95,-3.8],[.012,.5,.012]);
+    for(let j=0;j<3;j++)mesh(room,'sphere',material('hanging-herbs','#7b8050'),[x+(j-1)*.05,2.55,-3.8],[.055,.23,.05],[0,0,(j-1)*.3]);
+  }
+  const web=material('cobweb','#d8d1b6',{transparent:true,opacity:.23,side:THREE.DoubleSide,depthWrite:false});
+  for(const side of [-1,1]){
+    const corner=group(room,[side*4.75,3.25,-4.73]);
+    for(let i=0;i<6;i++){const a=i*Math.PI/10;mesh(corner,'cylinder',web,[-side*Math.cos(a)*.5,-Math.sin(a)*.5,0],[.008,1,.008],[0,0,-side*(Math.PI/2-a)]);}
+    for(const s of [.3,.6,.9])for(let j=0;j<5;j++){
+      const a=j*Math.PI/10,b=(j+1)*Math.PI/10,x1=-side*Math.cos(a)*s,y1=-Math.sin(a)*s,x2=-side*Math.cos(b)*s,y2=-Math.sin(b)*s;
+      mesh(corner,'cylinder',web,[(x1+x2)/2,(y1+y2)/2,0],[.005,Math.hypot(x2-x1,y2-y1),.005],[0,0,-Math.atan2(x2-x1,y2-y1)]);
+    }
+  }
 }
 
 export class World {
@@ -80,9 +122,9 @@ export class World {
         const doorway=game.rooms[roomId].doors.find(d=>d.id===def.id);
         if(doorway){const side=ROOMS.indexOf(doorway.to)>ROOMS.indexOf(roomId)||doorway.to==='exit'?1:-1;prop.position.set(side*5,0,0);prop.rotation.y=-side*Math.PI/2;prop.userData.visualTarget=true;prop.userData.doorSide=side;}
         // These controls belong to the relocated doorway, including interaction.
-        if(roomId==='vault'&&['keypad','rust_seal'].includes(def.id)){prop.position.set(5.1,0,def.x);prop.rotation.y=-Math.PI/2;prop.userData.visualTarget=true;prop.userData.doorSide=1;}
         if(def.id==='gate_sign'){prop.position.set(4.7,0,2.1);prop.rotation.y=-Math.PI/4;prop.userData.visualTarget=true;prop.userData.doorSide=1;}
       }
+      this.attachContents(roomId);
     }
     // A dropped portable item can live in any room. It has its own root per world.
     this.dropped=group(this.scene);this.portables=new Map();
@@ -103,6 +145,28 @@ export class World {
     this.sync(true);this.setRoom(game.players[index].room,true);
   }
   prop(id,room=this.currentRoom){return this.props.get(`${room}:${id}`);}
+  attachContents(room){
+    const definitions=this.game.rooms[room].objects;
+    for(const def of definitions){if(!def.parent)continue;
+      const parent=this.prop(def.parent,room),prop=this.prop(def.id,room),siblings=definitions.filter(d=>d.parent===def.parent),i=siblings.indexOf(def),kind=parent.userData.definition.kind;
+      const anchor=parent.userData.slide||parent;anchor.add(prop);prop.position.set(0,0,0);prop.rotation.set(0,0,0);
+      if(def.parent==='tarp'){prop.position.set(def.kind==='crate'?def.x-parent.userData.definition.x:1.15,0,def.kind==='crate'?def.z-parent.userData.definition.z:1.9);}
+      else if(def.parent==='rug')prop.position.set(0,0,0);
+      else if(def.parent==='vault_door')prop.position.set(def.id==='keypad'?-1:1,0,.15);
+      else if(kind==='cabinet'){const count=def.parent==='potion_cabinet'?4:3;prop.position.set((i%count-(count-1)/2)*.36,parent.userData.shelves[Math.floor(i/count)%2],.12);}
+      else if(kind==='shelf')prop.position.set((i%3-1)*.49,.27+Math.floor(i/3)*.75,.08);
+      else if(kind==='desk'){if(def.kind!=='drawer')prop.position.set(def.id==='globe'?-.55:def.id==='candles'?.58:0,1.15,-.05);}
+      else if(kind==='drawer')prop.position.set((i%3-1)*.36,.08,-.12+Math.floor(i/3)*.22);
+      else if(kind==='board'){prop.position.set((i%3-1)*.57,1.48+Math.floor(i/3)*.65,.145+i*.006);prop.rotation.set(Math.PI/2,0,(i-2)*.08);}
+      else if(kind==='chest'||kind==='toolbox')prop.position.set((i-(siblings.length-1)/2)*.4,def.parent==='satchel'?.1:.38,.07);
+      else if(def.parent==='cauldron')prop.position.set(.74,.1,.38);
+      else if(def.parent==='sink')prop.position.set(.44,1.24,.08);
+      else if(def.parent==='coat_rack')prop.position.set(.12,1.3,.12);
+      else if(def.parent==='umbrella_stand')prop.position.set(0,.6,0);
+      else if(def.parent==='stone_bench')prop.position.set(0,.1,.15);
+      else prop.position.set((i-(siblings.length-1)/2)*.3,kind==='armor'?.9:kind==='rack'?.45:.16,.2);
+    }
+  }
   position(room,x,z,y=0){return v(OFFSETS[room]+x,y,z);}
   movePosition(room,x,z){
     // Engine coordinates remain authoritative except for relocated door props.
@@ -111,6 +175,8 @@ export class World {
     // Stand beside the dial when reading it; do not put the robot inside it.
     const clock=this.game.rooms[room].objects.find(p=>p.kind==='clock'&&Math.abs(p.x-x)<.01&&Math.abs(p.z-z)<.01);
     if(clock)return this.position(room,x+1.1,z+.9);
+    const furniture=this.game.rooms[room].objects.find(p=>!p.parent&&['cabinet','shelf','board','desk'].includes(p.kind)&&Math.abs(p.x-x)<.01&&Math.abs(p.z-z)<.01);
+    if(furniture)return this.position(room,x+(x<0?1.25:-1.25),z+.65);
     // Engine room-entry coordinates are on Z; enter through the matching X door.
     if(room!=='minefield'&&x===0&&Math.abs(z)===4){const entry=this.game.rooms[room].doors.find(d=>Math.sign(d.z)===Math.sign(z)),door=entry&&this.prop(entry.id,room);if(door)return door.getWorldPosition(v()).add(v(-door.userData.doorSide*.95,0,0));}
     return this.position(room,x,z);
@@ -135,7 +201,7 @@ export class World {
       const weight=prop.getObjectByName('weight-label');if(weight)weight.visible=state.read.includes(def.id);
       if(instant&&state.doors[def.id])this.openDoor(prop,def.id,false);
       if(instant&&def.id==='rust_seal')prop.getObjectByName('seal').visible=!state.locks.seal;
-      if(instant&&def.id==='cabinet'&&state.cabinetOpen)prop.getObjectByName('cabinet-leaf').rotation.y=-1.4;
+      if(instant&&!def.stuck&&(def.id==='cabinet'?state.cabinetOpen:state.read.includes(def.id)))this.openContainer(prop,false);
     }
     // Locate placed/dropped items independently of their original room.
     const placed=new Map();for(const [id,loc] of Object.entries(state.itemLocations)){if(loc)placed.set(id,{...loc,scale:.7});}
@@ -158,6 +224,17 @@ export class World {
     const puddle=prop.getObjectByName('melt-puddle');puddle.visible=t>0;puddle.scale.set(1.25*(.3+t),.025,.65*(.3+t));
     for(let i=0;i<5;i++){const drip=prop.getObjectByName(`ice-drip-${i}`);drip.visible=t>0&&t<.96;drip.position.y=((1-t*3+i*.17)%1+1)%1*2.6*(1-t);}
   }else leaf.rotation.y=t*(id==='vault_door'?1.45:1.5);};if(animate){this.tween(2,fn);if(ice){for(let i=0;i<4;i++)this.later(i*.38,()=>this.burst(prop.getWorldPosition(v()).add(v(0,.5+i*.2,.15)),'steam',14));}}else fn(1);}
+  openContainer(prop,animate=true){
+    if(!prop||prop.userData.definition.stuck)return;
+    const data=prop.userData,start=data.openAmount||0;if(start===1)return;
+    const update=t=>{const a=THREE.MathUtils.lerp(start,1,ease(t));data.openAmount=a;
+      for(const part of data.openParts||[])part.node.rotation[part.axis]=part.to*a;
+      if(data.slide)data.slide.position.z=.65*a;
+      if(data.curtain){data.curtain.scale.x=1.6*(1-a*.93);data.curtain.position.x=-.75*a;}
+      if(data.cover){data.cover.position.set(-.5*a,.87*a+Math.sin(a*Math.PI)*.6,-2.1*a);data.cover.rotation.z=-.35*a;data.cover.scale.set(1-a*.15,1-a*.8,1-a*.88);}
+    };
+    if(animate)this.tween(.85,update);else update(1);
+  }
   setScale(kg,animate=true){const needle=this.prop('scale','storage').getObjectByName('needle');const start=needle.rotation.z,target=2.2-clamp(kg/50,0,1)*4.4;if(animate)this.tween(1.15,t=>{needle.rotation.z=THREE.MathUtils.lerp(start,target,t)+Math.sin(t*4*Math.PI)*(1-t)*.1;});else needle.rotation.z=target;}
   // Move segments follow the exact event path (including the path back to start
   // after an explosion). All timing is expressed in the viewer's simulation clock.
@@ -200,8 +277,8 @@ export class World {
     const prop=this.prop(e.obj,e.room);const pos=prop?prop.getWorldPosition(v()).add(v(0,1,0)):this.position(e.room,e.x||0,e.z||0,1);
     if(['pour','brew','door','boom','code','escape'].includes(e.t))this.eventHoldUntil=this.directorTime+(e.t==='escape'?4:2.8);
     switch(e.t){
-      case 'inspect':this.inspectUntil=this.now+.7;if(prop){this.turnTo(Math.atan2(pos.x-this.robot.position.x,pos.z-this.robot.position.z));if(e.obj==='chest'){const lid=prop.getObjectByName('lid');this.tween(.6,t=>lid.rotation.x=-1.1*t);}}break;
-      case 'reveal':if(prop){prop.visible=true;this.tween(.55,t=>prop.scale.setScalar(Math.max(.01,1+Math.sin(t*Math.PI)*.16-(1-t))));this.burst(pos,'spark',8);}break;
+      case 'inspect':this.inspectUntil=this.now+.7;if(prop){this.turnTo(Math.atan2(pos.x-this.robot.position.x,pos.z-this.robot.position.z));if(e.obj!=='cabinet')this.openContainer(prop);}break;
+      case 'reveal':if(prop){prop.visible=true;const scale=prop.userData.restScale;this.tween(.55,t=>prop.scale.copy(scale).multiplyScalar(Math.max(.01,t+Math.sin(t*Math.PI)*.16)));this.burst(pos,'spark',5);}break;
       case 'take': {
         this.reachUntil=this.now+.8;const source=this.prop(e.source||e.obj,e.room)||this.portables.get(e.obj);if(source&&e.obj!=='flask')source.visible=false;this.hold(e.obj);
         const item=this.slot.children[0];if(item){const scale=item.scale.x,end=item.position.clone();this.robot.updateMatrixWorld(true);const start=this.slot.worldToLocal(pos.clone());item.scale.setScalar(.01);this.tween(.7,t=>{item.scale.setScalar(Math.max(.01,t*scale));item.position.lerpVectors(start,end,ease(t));item.position.y+=Math.sin(t*Math.PI)*.4;});}
@@ -215,7 +292,7 @@ export class World {
       case 'boom':this.tile(e.r,e.c,'mine');this.shakeUntil=this.now+1.4;this.interestingUntil=this.now+2.3;this.interest=this.position(e.room,e.c-3,e.r-4,.5);this.burst(this.interest,'boom',50);this.burst(this.interest,'smoke',18);break;
       case 'scale':this.setScale(e.kg);break;
       case 'drop':this.reachUntil=this.now+.65;this.hold(null);break;
-      case 'open':if(prop?.getObjectByName('cabinet-leaf')){const leaf=prop.getObjectByName('cabinet-leaf');this.tween(.75,t=>leaf.rotation.y=-1.4*t);}break;
+      case 'open':this.openContainer(prop);break;
       case 'seal':if(prop){const seal=prop.getObjectByName('seal');this.tween(1,t=>{seal.scale.setScalar(1-t);},()=>{seal.visible=false;});this.burst(pos,'steam',18,'#b3f7a6');}break;
       case 'code':{const screen=this.prop('keypad','vault').getObjectByName('key-screen');screen.material.color.set(e.ok?'#65ffb0':'#ff5d49');screen.material.emissive.copy(screen.material.color);this.inspectUntil=this.now+.6;this.interest=screen.getWorldPosition(v());this.interestingUntil=this.now+2.6;break;}
       case 'escape':this.spot.intensity=65;this.spot.target.position.copy(this.robot.position);this.burst(this.robot.position.clone().add(v(0,3,0)),'confetti',95);this.interestingUntil=this.now+4;this.interest=this.robot.position.clone().add(v(0,1,0));break;
@@ -264,8 +341,8 @@ export class World {
     const aim=v(offset,.65,0),eye=v();let fov=32;
     const aspect=this.camera.aspect;
     // A shallow broadcast angle fills wide panes; focus views expose more floor.
-    const elevation=THREE.MathUtils.lerp(9,1.5,clamp((aspect-1.4)/1.2,0,1));
-    const direction=v(2.8,elevation,18).normalize(),right=v().crossVectors(v(0,1,0),direction).normalize(),up=v().crossVectors(direction,right);
+    const elevation=THREE.MathUtils.lerp(12,3.1,clamp((aspect-1.4)/1.6,0,1));
+    const direction=v(1.4,elevation,18).normalize(),right=v().crossVectors(v(0,1,0),direction).normalize(),up=v().crossVectors(direction,right);
     const tan=Math.tan(THREE.MathUtils.degToRad(fov/2));
     const points=[];for(const x of [-5.35,5.35])for(const z of [-5.35,5.35])points.push(v(offset+x,-.65,z));
     for(const x of [-5.2,5.2])for(const z of [-5.2,1.8])points.push(v(offset+x,3.55,z));

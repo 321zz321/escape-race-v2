@@ -66,13 +66,14 @@ function buildUI(){
     const viewport=element('div','viewport');
     const top=element('div','view-top'),contestant=element('div','contestant'),avatar=element('span','agent-avatar'),names=element('div');const room=element('div','room-name');names.append(element('div','agent-name',p.name),room);contestant.append(avatar,names);top.append(contestant);
     const controls=element('div','view-tools'),select=cameraSelect(shot?'room':'auto'),focusHint=element('span','focus-hint','⤢');focusHint.title='לחצו להגדלת הזירה';controls.append(select,focusHint);top.append(controls);card.append(top);
-    const objective=element('p','objective'),objectiveText=element('span');objective.append(objectiveText);viewport.append(objective);card.append(viewport);
-    const inventory=element('div','inventory');inventory.setAttribute('aria-label','חפצים ברשות המתמודד');top.insertBefore(inventory,controls);
-    const thoughtPanel=element('div','thought-panel');thoughtPanel.setAttribute('aria-label','המחשבות של '+p.name);const thought=element('p','thought-text','כל רמז יכול לפתוח את הדלת הבאה.');const command=element('span','', 'מתבונן בחדר'),status=element('span','action-status','מתכונן');const lastCommand=element('div','last-command');lastCommand.append(command,status);thoughtPanel.append(thought,lastCommand);card.append(thoughtPanel);
+    const activityLine=element('p','activity-line'),activity=element('span');activityLine.append(element('span','activity-label','עכשיו: '),activity);viewport.append(activityLine);card.append(viewport);
+    const findings=element('div','findings-strip'),discoveries=element('div','discoveries'),inventory=element('div','inventory');
+    discoveries.setAttribute('aria-label','מה מצא עד עכשיו');inventory.setAttribute('aria-label','חפצים ברשות המתמודד');findings.append(discoveries,inventory);card.append(findings);
+    const thoughtPanel=element('div','thought-panel');thoughtPanel.setAttribute('aria-label','המחשבות של '+p.name);const thought=element('p','thought-text','ארבעה חדרים. מתחילים להסתכל סביב.');const command=element('span','', 'מתבונן בחדר'),status=element('span','action-status','מתכונן');const lastCommand=element('div','last-command');lastCommand.append(command,status);thoughtPanel.append(thought,lastCommand);card.append(thoughtPanel);
     const alert=element('div','view-alert');lastCommand.insertBefore(alert,status);dom.views.append(card);
     const track=element('div','race-track');track.style.setProperty('--agent',p.color);const trackHeading=element('div','track-heading'),place=element('span','track-place','בדרך לחופש');trackHeading.append(element('span','track-name',p.name),place);const path=element('div','track-path'),line=element('div','track-line'),fill=element('div','track-fill');line.append(fill);const stations=element('div','track-stations');roomIcons.forEach((icon,n)=>{const s=element('span','',icon);s.title=roomNames[n];stations.append(s);});const dot=element('span','robot-dot');path.append(line,stations,dot);track.append(trackHeading,path);dom.tracks.append(track);
-    const view={card,viewport,room,objective:objectiveText,inventory,thought,command,status,select,alert,place,fill,dot,thoughtFull:'',thoughtAt:0,alertUntil:0,busyUntil:0,logRendered:0};views.push(view);
-    card.addEventListener('click',e=>{if(e.target.closest('select,button,.inventory'))return;setFocus(focus===i?-1:i);});
+    const view={card,viewport,room,activity,discoveries,inventory,thought,command,status,select,alert,place,fill,dot,thoughtFull:'',thoughtAt:0,alertUntil:0,busyUntil:0,logRendered:0};views.push(view);
+    card.addEventListener('click',e=>{if(e.target.closest('select,button,.findings-strip'))return;setFocus(focus===i?-1:i);});
     card.addEventListener('keydown',e=>{if(e.target!==card)return;if(e.key==='Enter'||e.key===' '){e.preventDefault();setFocus(focus===i?-1:i);}});
     select.addEventListener('change',()=>{worlds[i].mode=select.value;$('global-camera').value=worlds.every(w=>w.mode===select.value)?select.value:'mixed';});
   });
@@ -80,9 +81,22 @@ function buildUI(){
   $('seed-label').textContent=`מרוץ ${seed}`;$('mode-label').textContent=mode==='live'?'מרוץ מתמודדים':speed===1?'מרוץ הדגמה':`הדגמה · מהירות ×${speed}`;
   $('global-camera').value=shot?'room':'auto';layoutDirty=true;
 }
-function refreshView(i,state=game.players[i],objective=game.objective(i),progress=game.progress(i)){
-  const view=views[i];view.room.textContent=`חדר ${Object.keys(game.rooms).indexOf(state.room)+1} מתוך 4 · ${game.rooms[state.room].name}`;view.objective.textContent=objective;
-  view.inventory.replaceChildren(...state.inventory.map(id=>{const chip=element('span','item-chip');const dot=element('i');dot.style.setProperty('--item',palette[defs[id]?.color]||'#e3c58c');chip.append(dot,document.createTextNode(name(id)));return chip;}));
+function chipRow(row,label,items,limit,discovery=false){
+  const heading=element('span','chip-label',label);row.replaceChildren(heading);
+  if(!items.length){row.append(element('span','empty-chips',discovery?'עדיין בוחן את החדר':'ריק'));return;}
+  // Each strip has a fixed line. Fit whole chips and retain an accessible overflow count.
+  const shown=items.slice(-limit),hidden=items.slice(0,-shown.length);
+  for(const item of shown){const chip=element('span',discovery?'discovery-chip':'item-chip',item);chip.title=item;row.append(chip);}
+  const more=element('span','more-chip');row.append(more);
+  const update=()=>{more.textContent=hidden.length?`+${hidden.length}`:'';more.hidden=!hidden.length;more.title=hidden.join(' · ');more.setAttribute('aria-label',`${hidden.length} נוספים: ${hidden.join(' · ')}`);};update();
+  while(row.scrollWidth>row.clientWidth&&row.children.length>3){const first=row.children[1];hidden.push(first.textContent);first.remove();update();}
+}
+function refreshView(i,state=game.players[i],activity=game.activity(i),progress=game.progress(i),discoveries=game.discoveries(i)){
+  const view=views[i];view.room.textContent=`חדר ${Object.keys(game.rooms).indexOf(state.room)+1} מתוך 4 · ${game.rooms[state.room].name}`;
+  // The legacy bookshelf phrase is asserted verbatim by the engine contract tests.
+  view.activity.textContent=activity.replace('בודק את כוננית ספרים','בודק את כוננית הספרים');
+  view.chipState={inventory:state.inventory.map(name),discoveries};
+  chipRow(view.discoveries,'מה מצא עד עכשיו',discoveries,4,true);chipRow(view.inventory,'בידיו',view.chipState.inventory,4);
   view.fill.style.width=`${progress*100}%`;view.dot.style.left=`${progress*100}%`;view.place.textContent=state.escaped?`${['🥇','🥈','🥉','🏁'][state.place-1]} מקום ${state.place}`:'בדרך לחופש';view.card.classList.toggle('escaped',state.escaped);
   if(state.escaped)view.status.textContent='הגיע לחופש';
 }
@@ -145,11 +159,11 @@ function receiveAction(action){
   const entry={cmd,thought,result,time:elapsed(),step:logEntries[p].length+1,approximate:replayApproximate};appendLog(p,entry);
   for(const event of result.ev){if(event.t==='code'&&!event.ok)wrongCodes[p]++;if(event.t==='escape')times[p]=elapsed();}
   // Capture the state at reception, not the future state at animation completion.
-  queues[p].push({cmd,thought,result,duration,state:JSON.parse(JSON.stringify(game.players[p])),objective:game.objective(p),progress:game.progress(p)});
+  queues[p].push({cmd,thought,result,duration,state:JSON.parse(JSON.stringify(game.players[p])),activity:game.activity(p),discoveries:game.discoveries(p),progress:game.progress(p)});
   if(game.finished&&finishTime===null){liveFinishedMs=elapsed();finishTime=simTime;}
   return {result,duration};
 }
-function startAction(i,action){const view=views[i],world=worlds[i];view.busyUntil=simTime+action.duration/1000;view.thoughtFull=action.thought||'בודק את הרמזים ומתכנן את הצעד הבא.';view.thoughtAt=simTime;view.command.textContent=commandText(action.cmd);view.status.textContent=action.result.ok?'בפעולה':'מנסה דרך אחרת';refreshView(i,action.state,action.objective,action.progress);notable(i,action.result);world.animate(action.cmd,action.result,action.duration,action.state);}
+function startAction(i,action){const view=views[i],world=worlds[i];view.busyUntil=simTime+action.duration/1000;view.thoughtFull=action.thought||'בוחן את החדר.';view.thoughtAt=simTime;view.command.textContent=commandText(action.cmd);view.status.textContent=action.result.ok?'בפעולה':'מנסה דרך אחרת';refreshView(i,action.state,action.activity,action.progress,action.discoveries);notable(i,action.result);world.animate(action.cmd,action.result,action.duration,action.state);}
 function updateBots(){
   if(mode!=='demo'||raceState!=='running')return;
   bots.forEach((entry,i)=>{if(game.players[i].escaped||simTime<nextActions[i]||queues[i].length||simTime<views[i].busyUntil)return;
@@ -166,7 +180,7 @@ function showResults(){
 }
 function measure(){
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight,false);
-  views.forEach((view,i)=>{const rect=view.viewport.getBoundingClientRect();view.rect=rect;if(rect.width&&rect.height)worlds[i]?.resize(Math.round(rect.width),Math.round(rect.height),Math.min(devicePixelRatio,1.5)*quality);});layoutDirty=false;
+  views.forEach((view,i)=>{if(view.chipState){chipRow(view.discoveries,'מה מצא עד עכשיו',view.chipState.discoveries,4,true);chipRow(view.inventory,'בידיו',view.chipState.inventory,4);}const rect=view.viewport.getBoundingClientRect();view.rect=rect;if(rect.width&&rect.height)worlds[i]?.resize(Math.round(rect.width),Math.round(rect.height),Math.min(devicePixelRatio,1.5)*quality);});layoutDirty=false;
 }
 function frame(now){
   if(disposed)return;requestAnimationFrame(frame);const realDt=Math.min(.15,Math.max(0,(now-lastFrame)/1000));lastFrame=now;

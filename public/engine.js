@@ -398,15 +398,27 @@
     }
 
     _activity(cmd, result) {
-      const name = id => this._name(id);
+      // Definite forms belong to the narration only; object names and rules are unchanged.
+      // The legacy bookshelf phrase is contract-tested verbatim; the viewer polishes it.
+      const definite = {
+        cauldron:'הקדרה', drain_valve:'ברז הניקוז', potion_cabinet:'ארון הזכוכית', tall_cupboard:'הארון הגבוה',
+        olive_oil:'בקבוק שמן הזית', dye_blue:'בקבוק הצבע הכחול', perfume:'בקבוק הבושם', ink_black:'בקבוק הדיו השחור', dye_red:'בקבוק הצבע האדום', vinegar:'בקבוק החומץ', glitter:'צנצנת הנצנצים', dye_yellow:'בקבוק הצבע הצהוב',
+        apron:'הסינר', flask_rack:'מעמד הבקבוקונים', gloves:'הכפפות', broom:'המטאטא', bookshelf:'כוננית ספרים', cookbook:'ספר הבישול', star_atlas:'אטלס הכוכבים', recipe_book:'הספר הכתוב ביד', poetry_book:'ספר השירים', dictionary:'המילון', diary_old:'היומן הישן', empty_folder:'התיקייה', skull:'הגולגולת', cat_statue:'פסל החתול',
+        desk:'שולחן הכתיבה', desk_drawer:'מגירת השולחן', pencils:'העפרונות', eraser:'המחק', brass_key:'מפתח הפליז', ink_pen:'עט הדיו', old_receipt:'הקבלה הישנה', globe:'הגלובוס', candles:'הנרות', wall_clock:'שעון הקיר', calendar:'לוח השנה', barometer:'הברומטר', old_map:'מפת הקיר', painting:'ציור הנוף', chest_lab:'ארגז הבגדים', old_clothes:'הבגדים הישנים', broken_spectacles:'המשקפיים השבורים', rug:'השטיח', trapdoor:'דלת הרצפה', stool:'השרפרף המתקפל', sink:'הכיור', herb_basket:'סל העשבים', ice_door:'הדלת המכוסה בקרח',
+        scale:'משקל הרצפה', gate:'שער הברזל', gate_sign:'השלט ליד השער', tarp:'יריעת הבד', sand_sack:'שק החול', shelf_storage:'מדף העץ', paint_cans:'פחיות הצבע', rope:'החבל', lantern:'העששית', toolbox:'ארגז הכלים', magnifier:'הזכוכית המגדלת', hammer:'הפטיש', nails:'המסמרים', screwdriver:'המברג', barrel:'החבית', anvil:'הסדן', mirror:'המראה', poster:'הכרזה', ladder:'הסולם', wheelbarrow:'המריצה', cardboard_boxes:'קופסאות הקרטון', empty_jars:'הצנצנות הריקות', newspapers:'העיתונים',
+        far_door:'הדלת הרחוקה', warning_sign:'השלט החרוט על הקיר', armor:'השריון', helmet:'הקסדה', armor_lining:'בטנת הבד', banner:'דגל הבד', bones:'ערמת העצמות', tooth:'השן', torch_holder:'מתקן הלפידים', spent_torch:'הלפיד הכבוי', cracked_shield:'המגן הסדוק', leather_straps:'רצועות העור', stone_bench:'ספסל האבן', satchel:'תיק הבד', cloth_scraps:'שאריות הבד', buttons:'הכפתורים', stone_chest:'תיבת האבן', weapons_rack:'מעמד הנשק', rusty_sword:'החרב החלודה', broken_spear:'החנית השבורה', wall_niche:'גומחת הקיר', pottery_shards:'שברי החרס', clay_bowl:'קערת החרס', smooth_stones:'האבנים החלקות',
+        vault_door:'דלת הכספת', keypad:'לוח המקשים', rust_seal:'החותם החלוד', notice_board:'לוח המודעות', old_notice:'המודעה הישנה', wanted_poster:'כרזת המבוקש', torn_page:'הדף התלוש', menu:'התפריט', bank_hours:'שעות הפתיחה', cabinet:'הארונית', ledger:'פנקס החשבונות', note:'הפתק המקופל', stamp:'החותמת', desk_vault:'השולחן המשרדי', papers_pile:'ערמת הניירות', grandfather_clock:'השעון העומד', small_safe:'הכספת הקטנה', portrait:'הדיוקן', chest:'תיבת העץ', gold_coin:'מטבע הזהב', velvet_pouch:'שקיק הקטיפה', telescope:'הטלסקופ', gold_pile:'ערמת הזהב', coat_rack:'מתלה המעילים', dusty_coat:'המעיל המאובק', umbrella_stand:'מעמד המטריות', bent_umbrella:'המטרייה העקומה',
+        flask:'הבקבוקון הריק', flask_fire:'הבקבוקון הכתום', flask_acid:`הבקבוקון ה${COLORS[this._solution.acidColor]}`, flask_muddy:'הבקבוקון העכור'
+      };
+      const name = id => definite[id] || `ה${this._name(id)}`;
       // Failed guesses must not disclose an unseen object's identity or imply success.
       if (result.ev.some(e => e.t === 'boom')) return 'חוזר לתחילת הלוח אחרי פיצוץ';
       if (!result.ok) return result.ev.some(e => e.t === 'code') ? 'מקליד קוד בלוח המקשים' : 'מנסה פעולה בחדר';
       if (cmd.op === 'look') return 'מסתכל סביב בחדר';
       if (cmd.op === 'inventory') return 'בודק את החפצים שבידיו';
       if (cmd.op === 'inspect') return `בודק את ${name(cmd.target)}`;
-      if (cmd.op === 'take') return `לוקח ${cmd.target === 'flask_rack' ? 'בקבוקון מהמעמד' : name(cmd.target)}`;
-      if (cmd.op === 'drop') return `מניח ${name(cmd.item)} על הרצפה`;
+      if (cmd.op === 'take') return `לוקח ${cmd.target === 'flask_rack' ? 'בקבוקון מהמעמד' : `את ${name(cmd.target)}`}`;
+      if (cmd.op === 'drop') return `מניח את ${name(cmd.item)} על הרצפה`;
       if (cmd.op === 'go') return `עובר אל ${this.rooms[cmd.room].name}`;
       if (cmd.op === 'step') return `צועד במשבצת ${cmd.row},${cmd.col}`;
       if (cmd.op === 'enter_code') return 'מקליד קוד בלוח המקשים';
@@ -414,7 +426,7 @@
       if (cmd.item === 'flask' && cmd.target === 'cauldron') return 'ממלא בקבוקון מהקדרה';
       if (cmd.item === 'drain_valve') return 'מסובב את ברז הניקוז';
       if (cmd.item === 'brass_key' && cmd.target === 'cabinet') return 'מסובב מפתח בארונית';
-      if (cmd.target === 'scale') return `מניח ${name(cmd.item)} על המשקל`;
+      if (cmd.target === 'scale') return `מניח את ${name(cmd.item)} על המשקל`;
       if (cmd.item.startsWith('flask_')) return `שופך נוזל על ${name(cmd.target)}`;
       return `משתמש ב${name(cmd.item)}`;
     }
@@ -473,7 +485,8 @@
         }
         if (this._object(p, obj.id)) names.push(`${obj.name} (${obj.id})`);
       }
-      return names.length ? ` בפנים: ${names.join(', ')}.` : '';
+      const where = { bookshelf:'על המדפים', shelf_storage:'על המדפים', wall_niche:'על המדפים', rug:'מתחתיו', tarp:'מתחתיו', notice_board:'תלויים עליו', desk:'בשולחן ועליו', desk_vault:'עליו', sink:'על שפת הכיור', coat_rack:'תלויים עליו', cauldron:'מחובר אליה', vault_door:'על הדלת', stone_bench:'מתחתיו' };
+      return names.length ? ` ${where[parent] || 'בפנים'}: ${names.join(', ')}.` : '';
     }
     _weight(id) { return id === 'sand_sack' ? 9 : (this._solution.crateWeights[id] || 0); }
     _kg(p) { return p.scale.reduce((sum, id) => sum + this._weight(id), 0); }
