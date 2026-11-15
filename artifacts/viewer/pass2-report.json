@@ -1,0 +1,115 @@
+{
+    "threeVersion":  "0.186.0",
+    "demo":  {
+                 "rooms":  [
+                               "vault",
+                               "vault",
+                               "vault",
+                               "vault"
+                           ],
+                 "fps":  21,
+                 "errors":  [
+
+                            ],
+                 "finished":  true,
+                 "modes":  [
+                               "auto",
+                               "auto",
+                               "auto",
+                               "auto"
+                           ],
+                 "shots":  [
+                               "event",
+                               "room",
+                               "room",
+                               "room"
+                           ],
+                 "events":  [
+                                "move",
+                                "inspect",
+                                "reveal",
+                                "take",
+                                "pour",
+                                "brew",
+                                "empty",
+                                "door",
+                                "go",
+                                "drop",
+                                "scale",
+                                "tile",
+                                "step",
+                                "open",
+                                "code",
+                                "seal",
+                                "escape",
+                                "boom",
+                                "fail"
+                            ]
+             },
+    "fps":  {
+                "min":  1,
+                "median":  20,
+                "max":  139,
+                "samples":  115
+            },
+    "layout":  [
+                   {
+                       "headerBottom":  179,
+                       "canvasTop":  179,
+                       "canvasBottom":  460,
+                       "thoughtTop":  460,
+                       "objectiveFont":  "20px",
+                       "thoughtFont":  "18px",
+                       "letterSpacing":  "normal"
+                   },
+                   {
+                       "headerBottom":  179,
+                       "canvasTop":  179,
+                       "canvasBottom":  460,
+                       "thoughtTop":  460,
+                       "objectiveFont":  "20px",
+                       "thoughtFont":  "18px",
+                       "letterSpacing":  "normal"
+                   },
+                   {
+                       "headerBottom":  598,
+                       "canvasTop":  598,
+                       "canvasBottom":  879,
+                       "thoughtTop":  879,
+                       "objectiveFont":  "20px",
+                       "thoughtFont":  "18px",
+                       "letterSpacing":  "normal"
+                   },
+                   {
+                       "headerBottom":  598,
+                       "canvasTop":  598,
+                       "canvasBottom":  879,
+                       "thoughtTop":  879,
+                       "objectiveFont":  "20px",
+                       "thoughtFont":  "18px",
+                       "letterSpacing":  "normal"
+                   }
+               ],
+    "liveDefault":  [
+                        "auto",
+                        "auto",
+                        "auto",
+                        "auto"
+                    ],
+    "consoleErrors":  [
+
+                      ],
+    "captures":  [
+                     "lab",
+                     "storage",
+                     "minefield",
+                     "vault"
+                 ],
+    "verification":  {
+                         "viewport":  "1600x1000",
+                         "tests":  "npm.cmd test: 24 passed, 0 failed",
+                         "browser":  "Real headless Chrome, local Three.js 0.186.0 matching the pinned import map",
+                         "benchmark":  "Frame limiter, GPU vsync and background throttling disabled",
+                         "performanceCaveat":  "Frame cadence varied substantially across runs. A separate control skipping all four World.render calls measured 12.95 FPS. The latest full-demo median is reported without claiming stable broadcast frame rate."
+                     }
+}

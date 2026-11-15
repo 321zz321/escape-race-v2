@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10151d">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='12' fill='%23101722'/%3E%3Cpath d='M24 5 43 24 24 43 5 24Z' fill='none' stroke='%23e5ba72' stroke-width='4'/%3E%3C/svg%3E">
+  <title>משחקי הבינה — מרוץ הבריחה</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <script type="importmap">
+    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"}}
+  </script>
+</head>
+<body>
+  <canvas id="stage" aria-hidden="true"></canvas>
+  <div id="broadcast">
+    <header class="masthead">
+      <div class="brand"><span class="brand-symbol" aria-hidden="true">◈</span><div><span class="eyebrow">ארבע בינות. דרך אחת החוצה.</span><h1>משחקי הבינה <span>— מרוץ הבריחה</span></h1></div></div>
+      <div class="show-controls"><span id="mode-label" class="mode-label">מרוץ הדגמה</span><span class="live-badge"><i></i> שידור חי</span><time id="show-clock">00:00</time><label class="camera-control"><span>מצלמות</span><select id="global-camera" aria-label="מצב כל המצלמות"><option value="auto">במאי אוטומטי</option><option value="follow">מעקב</option><option value="room">מבט לחדר</option><option value="overview">כל המסלול</option></select></label></div>
+    </header>
+    <section class="race-strip" aria-label="התקדמות המתמודדים"><div class="race-heading"><span class="eyebrow">הדרך לחופש</span><span>4 חדרים <b>↤</b> מנצח אחד</span></div><div id="race-tracks"></div></section>
+    <main id="views" aria-label="ארבע זירות המרוץ"></main>
+    <aside id="focus-panel" hidden aria-label="יומן המתמודד"><div class="focus-heading"><div><span class="eyebrow">מאחורי ההחלטות</span><h2 id="focus-name"></h2></div><button id="close-focus" aria-label="חזרה לארבע הזירות">חזרה לשידור ✕</button></div><p class="log-intro">המחשבות והתשובות שהמתמודד קיבל, צעד אחר צעד.</p><div id="thought-log" tabindex="0"></div></aside>
+    <footer class="ticker"><span class="ticker-title"><i></i> מה קורה עכשיו</span><div id="ticker-items" role="log" aria-live="polite"><span>המרוץ מתחיל במעבדה. מי ימצא את הדרך החוצה?</span></div><span id="seed-label" title="מספר המרוץ לשחזור ההדגמה"></span></footer>
+  </div>
+  <section id="lobby" class="screen-overlay" hidden><div class="overlay-card"><span class="eyebrow">משחקי הבינה</span><div class="lobby-orbit" aria-hidden="true">◈</div><h2 id="lobby-title">ממתינים לתחילת המרוץ</h2><p id="lobby-message">המתמודדים מתכוננים. ארבעה חדרים מחכים להם.</p><div id="lobby-players"></div></div></section>
+  <section id="results" class="screen-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="results-title"><div class="overlay-card results-card"><span class="eyebrow">הדרך לחופש הושלמה</span><h2 id="results-title">יש לנו מנצחים!</h2><p>ארבע בינות, ארבע דרכים לפתרון.</p><div id="results-table"></div><button id="dismiss-results">בחזרה לזירות</button></div></section>
+  <div id="loading" class="screen-overlay"><div class="overlay-card"><div class="loading-mark">◈</div><h2>מכינים את הזירות</h2><p id="loading-message">מדליקים נרות, מסדרים רמזים, מכוונים מצלמות…</p></div></div>
+  <div id="connection" hidden role="status">החיבור נקטע. מנסים להתחבר מחדש…</div>
+  <noscript>יש להפעיל JavaScript כדי לצפות במרוץ.</noscript>
+  <script src="/engine.js"></script>
+  <script src="/mock.js"></script>
+  <script>window.addEventListener('error',function(e){if(!window.__viewer?.ready){var m=document.getElementById('loading-message');if(m)m.textContent='לא ניתן לטעון את השידור. בדקו את החיבור ורעננו את העמוד.';}});</script>
+  <script type="module" src="/viewer.js" onerror="document.getElementById('loading-message').textContent='טעינת מנוע התלת־ממד נכשלה. בדקו שהחיבור לאינטרנט מאפשר טעינה משרת הספריות החיצוני ורעננו.'"></script>
+</body>
+</html>

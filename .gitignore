@@ -1,0 +1,14 @@
+.codex-log*
+.codex-out*
+node_modules/
+.viewer-check/
+.env
+.env.*
+server/contestants.json
+.server.log
+.server.pid
+.codex-*
+artifacts/viewer/*.json
+artifacts/viewer/*.log
+*.mp4
+*.gif

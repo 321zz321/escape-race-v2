@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>עמדת המנחה — מרוץ חדרי הבריחה</title>
+  <style>
+    :root { color-scheme: dark; font-family: Arial, sans-serif; background: #10131e; color: #f2f4fc; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 28px 20px 60px; }
+    main { max-width: 1060px; margin: auto; }
+    header, .row { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
+    header { justify-content: space-between; margin-bottom: 24px; }
+    h1 { font-size: clamp(25px, 4vw, 36px); margin: 6px 0; }
+    h2 { font-size: 21px; margin-top: 0; }
+    p { line-height: 1.65; }
+    .muted { color: #b4bbd3; }
+    .card { background: #191e2e; border: 1px solid #313b55; border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+    a { color: #8bd9ff; }
+    input, button { font: inherit; border-radius: 9px; padding: 12px 16px; }
+    input { color: #fff; border: 1px solid #69738c; background: #10131e; width: min(100%, 300px); }
+    button { border: 1px solid #596482; color: #f5f7ff; background: #303b55; cursor: pointer; }
+    button.primary { background: #ff7a45; border-color: #ff7a45; color: #1b130d; font-weight: bold; }
+    button:disabled { opacity: .45; cursor: default; }
+    button:hover:not(:disabled) { filter: brightness(1.15); }
+    button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #8bd9ff; outline-offset: 4px; }
+    .badge { display: inline-block; border: 1px solid #7885a1; padding: 8px 16px; border-radius: 24px; }
+    .badge[data-state="running"] { background: #144c40; border-color: #4dd6a9; }
+    .badge[data-state="finished"] { background: #55421d; border-color: #edbf61; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: right; white-space: nowrap; }
+    th, td { padding: 14px 10px; border-bottom: 1px solid #313b55; }
+    th { color: #b4bbd3; font-weight: normal; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-left: 9px; }
+    code { direction: ltr; unicode-bidi: isolate; display: inline-block; overflow-wrap: anywhere; white-space: normal; font-size: 14px; }
+    .connection { border-top: 1px solid #313b55; margin-top: 18px; padding-top: 16px; }
+    .connection code { display: block; text-align: left; background: #10131e; padding: 12px; margin: 10px 0; border-radius: 8px; }
+    .connection button { padding: 8px 12px; }
+    #feedback { min-height: 26px; color: #ffd28a; }
+    #errors { color: #ffb9b9; }
+    label { display: block; margin-bottom: 10px; }
+    @media (max-width: 600px) { .card { padding: 18px; } .controls button { flex-grow: 1; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div><p class="muted">משחקי הבינה · עמדת המנחה</p><h1>מרוץ חדרי הבריחה</h1></div>
+    <a href="/?mode=live" target="_blank" rel="noopener noreferrer">פתיחת מסך השידור ↗</a>
+  </header>
+  <section class="card" aria-labelledby="control-title">
+    <div class="row"><h2 id="control-title">ניהול המרוץ</h2><span id="status" class="badge" role="status">מתחבר…</span></div>
+    <p class="muted">ארבעה מתמודדים, ארבעה חדרים. המקומות הפנויים יאוישו בבוטים עם תחילת המרוץ.</p>
+    <label for="seed">זרע למרוץ חדש <span class="muted">(אפשר להשאיר ריק להגרלה)</span></label>
+    <div class="row controls">
+      <input id="seed" type="text" maxlength="256" placeholder="למשל: מרוץ הקהילה" autocomplete="off">
+      <button id="lobby" disabled>פתיחת לובי חדש</button>
+      <button id="start" class="primary" disabled>התחלת המרוץ</button>
+      <button id="reset" disabled>איפוס והגרלת מרוץ</button>
+    </div>
+    <p class="muted">זרע נוכחי: <code id="current-seed">—</code> · פעולות שבוצעו: <span id="actions">0</span></p>
+    <p id="feedback" role="status" aria-live="polite"></p>
+    <p id="errors" role="alert"></p>
+  </section>
+  <section class="card" aria-labelledby="players-title">
+    <h2 id="players-title">המתמודדים</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>מסלול</th><th>שם</th><th>סוג</th><th>חדר</th><th>מקום בסיום</th></tr></thead>
+      <tbody id="players"></tbody>
+    </table></div>
+    <p id="places" class="muted" aria-live="polite">ממתינים לסיום הראשון.</p>
+  </section>
+  <section class="card" aria-labelledby="connect-title">
+    <h2 id="connect-title">חיבור המתמודדים</h2>
+    <p>כתובת MCP: <code id="mcp-url"></code></p>
+    <p class="muted">בחרו Streamable HTTP. אפשר להתחבר עם קישור אישי או עם הכותרת Authorization שמופיעה מתחתיו. לכל מתמודד מפתח משלו.</p>
+    <div id="connections"></div>
+    <p class="muted">ב־Claude Desktop אפשר להשתמש ב־mcp-remote עם הקישור האישי. ב־MCP Inspector בחרו Streamable HTTP והדביקו אותו. קובץ המתמודדים: <code>server/contestants.json</code>; שינויו נכנס לתוקף בהפעלה הבאה של השרת.</p>
+  </section>
+</main>
+<script>
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const adminKey = new URL(location.href).searchParams.get('admin') || '';
+  const headers = { 'X-Admin-Key': adminKey, 'Content-Type': 'application/json' };
+  const labels = { lobby: 'הלובי פתוח', running: 'המרוץ בשידור', finished: 'המרוץ הסתיים' };
+  const rooms = { lab: 'מעבדה', storage: 'מחסן', minefield: 'שדה המוקשים', vault: 'כספת' };
+  let state, busy = false, refreshTimer, refreshing = false, refreshAgain = false;
+  $('mcp-url').textContent = `${location.origin}/mcp`;
+  function buttons() {
+    for (const id of ['lobby', 'reset']) $(id).disabled = busy || !state;
+    $('start').disabled = busy || state?.status !== 'lobby';
+  }
+  function render(data) {
+    state = data;
+    $('status').textContent = labels[data.status] || data.status;
+    $('status').dataset.state = data.status;
+    $('current-seed').textContent = data.seed;
+    $('actions').textContent = data.log.length;
+    $('errors').textContent = data.errors.map(e => `${data.players[e.p].name}: ${e.message}`).join(' · ');
+    $('players').replaceChildren(...data.players.map((player, i) => {
+      const row = document.createElement('tr');
+      const live = data.game.players[i];
+      for (const value of [i + 1, player.name, player.bot ? 'בוט' : 'מתמודד', rooms[live.room], live.place || '—']) {
+        const cell = document.createElement('td'); cell.textContent = value; row.append(cell);
+      }
+      const dot = document.createElement('span'); dot.className = 'dot'; dot.style.backgroundColor = player.color;
+      row.children[1].prepend(dot);
+      return row;
+    }));
+    $('places').textContent = data.places.length ? data.places.map((p, i) => `${i + 1}. ${data.players[p].name}`).join(' · ') : 'ממתינים לסיום הראשון.';
+    buttons();
+  }
+  async function getState() {
+    if (refreshing) { refreshAgain = true; return; }
+    refreshing = true;
+    try {
+      const response = await fetch('/api/state');
+      if (!response.ok) throw new Error('לא ניתן לטעון את מצב המרוץ.');
+      render(await response.json());
+    } catch (error) { $('feedback').textContent = error.message; }
+    finally { refreshing = false; if (refreshAgain) { refreshAgain = false; scheduleRefresh(); } }
+  }
+  function scheduleRefresh() {
+    if (!refreshTimer) refreshTimer = setTimeout(() => { refreshTimer = null; getState(); }, 150);
+  }
+  async function control(action) {
+    busy = true; buttons(); $('feedback').textContent = 'מעדכן…';
+    const payload = action === 'lobby' && $('seed').value.trim() ? { seed: $('seed').value.trim() } : {};
+    try {
+      const response = await fetch(`/api/host/${action}`, { method: 'POST', headers, body: JSON.stringify(payload) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'הפעולה נכשלה.');
+      render(data);
+      $('feedback').textContent = action === 'start' ? 'המרוץ התחיל — בהצלחה!' : 'לובי חדש מוכן. אפשר לחבר מתמודדים ולהתחיל.';
+    } catch (error) { $('feedback').textContent = error.message; }
+    finally { busy = false; buttons(); }
+  }
+  for (const action of ['lobby', 'start', 'reset']) $(action).addEventListener('click', () => control(action));
+  async function connect() {
+    try {
+      const response = await fetch('/api/host/state', { headers });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'מפתח המנחה לא התקבל.');
+      render(data);
+      for (const person of data.contestants) {
+        const card = document.createElement('div'); card.className = 'connection';
+        const title = document.createElement('strong'); title.textContent = person.name; card.append(title);
+        const url = new URL('/mcp', location.origin); url.searchParams.set('key', person.key);
+        for (const value of [url.href, `Authorization: Bearer ${person.key}`,
+          `claude mcp add --transport http escape-race "${url.href}"`]) {
+          const code = document.createElement('code'); code.textContent = value; card.append(code);
+        }
+        const copy = document.createElement('button'); copy.textContent = 'העתקת קישור אישי';
+        copy.addEventListener('click', async () => {
+          try { await navigator.clipboard.writeText(url.href); $('feedback').textContent = 'הקישור הועתק.'; }
+          catch (_) { $('feedback').textContent = 'בחרו את הקישור שמופיע למעלה והעתיקו אותו ידנית.'; }
+        });
+        card.append(copy); $('connections').append(card);
+      }
+      const events = new EventSource('/api/events');
+      for (const type of ['init', 'action', 'status']) events.addEventListener(type, scheduleRefresh);
+      events.onerror = () => { $('feedback').textContent = 'החיבור לשידור נותק. מנסה להתחבר מחדש…'; };
+      events.onopen = () => { $('feedback').textContent = 'מחובר לעדכוני המרוץ.'; };
+      const polling = setInterval(scheduleRefresh, 5000);
+      window.addEventListener('pagehide', () => { events.close(); clearInterval(polling); clearTimeout(refreshTimer); });
+    } catch (error) { $('feedback').textContent = error.message; }
+  }
+  connect();
+</script>
+</body>
+</html>
